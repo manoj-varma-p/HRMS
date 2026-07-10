@@ -1,0 +1,10 @@
+export const EMPLOYEE_STATUS = {
+  ACTIVE: "ACTIVE",
+  INACTIVE: "INACTIVE",
+  NOTICE_PERIOD: "NOTICE_PERIOD",
+  RESIGNED: "RESIGNED",
+  TERMINATED: "TERMINATED",
+} as const;
+
+export type EmployeeStatus =
+  (typeof EMPLOYEE_STATUS)[keyof typeof EMPLOYEE_STATUS];

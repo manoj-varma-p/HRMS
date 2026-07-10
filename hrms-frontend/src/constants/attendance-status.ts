@@ -1,0 +1,13 @@
+export const ATTENDANCE_STATUS = {
+  ON_TIME: "ON_TIME",
+  LATE: "LATE",
+  HALF_DAY: "HALF_DAY",
+  ABSENT: "ABSENT",
+  ON_LEAVE: "ON_LEAVE",
+  HOLIDAY: "HOLIDAY",
+  WEEKEND: "WEEKEND",
+  MISSED_CHECKOUT: "MISSED_CHECKOUT",
+} as const;
+
+export type AttendanceStatus =
+  (typeof ATTENDANCE_STATUS)[keyof typeof ATTENDANCE_STATUS];
