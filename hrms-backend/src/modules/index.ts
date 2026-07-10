@@ -1,0 +1,38 @@
+import { Router } from "express";
+import healthRoutes from "./health/health.routes";
+import authRoutes from "./auth/auth.routes";
+import employeeRoutes from "./employee/employee.routes";
+import departmentRoutes from "./department/department.routes";
+import designationRoutes from "./designation/designation.routes";
+import attendanceRoutes from "./attendance/attendance.routes";
+import attendanceCorrectionRoutes from "./attendance-correction/attendance-correction.routes";
+import leaveRoutes from "./leave/leave.routes";
+import holidayRoutes from "./holiday/holiday.routes";
+import dashboardRoutes from "./dashboard/dashboard.routes";
+import reportsRoutes from "./reports/reports.routes";
+import searchRoutes from "./search/search.routes";
+import notificationsRoutes from "./notifications/notifications.routes";
+import announcementsRoutes from "./announcements/announcements.routes";
+import activityLogRoutes from "./activity-log/activity-log.routes";
+import configurationRoutes from "./configuration/configuration.routes";
+
+const router = Router();
+
+router.use("/health", healthRoutes);
+router.use("/auth", authRoutes);
+router.use("/employees", employeeRoutes);
+router.use("/departments", departmentRoutes);
+router.use("/designations", designationRoutes);
+router.use("/attendance", attendanceRoutes);
+router.use("/attendance/corrections", attendanceCorrectionRoutes);
+router.use("/leaves", leaveRoutes);
+router.use("/holidays", holidayRoutes);
+router.use("/dashboard", dashboardRoutes);
+router.use("/reports", reportsRoutes);
+router.use("/search", searchRoutes);
+router.use("/notifications", notificationsRoutes);
+router.use("/announcements", announcementsRoutes);
+router.use("/activity", activityLogRoutes);
+router.use("/configuration", configurationRoutes);
+
+export default router;

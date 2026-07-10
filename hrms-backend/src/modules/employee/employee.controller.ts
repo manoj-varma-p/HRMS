@@ -1,0 +1,81 @@
+import { Request, Response } from "express";
+import { sendSuccess } from "../../shared/utils/ApiResponse";
+import * as employeeService from "./employee.service";
+
+async function list(req: Request, res: Response): Promise<void> {
+  const query = req.validated!.query as {
+    page: number;
+    limit: number;
+    search?: string;
+    department?: string;
+    designation?: string;
+    role?: string;
+    status?: string;
+    sortBy: string;
+    sortOrder: "asc" | "desc";
+  };
+  const result = await employeeService.listEmployees(query);
+  sendSuccess(res, result);
+}
+
+async function create(req: Request, res: Response): Promise<void> {
+  const result = await employeeService.createEmployee(req.user!, req.body);
+  sendSuccess(
+    res,
+    result,
+    "Employee created - share the temporary password with them once",
+    201
+  );
+}
+
+async function getById(req: Request, res: Response): Promise<void> {
+  const employee = await employeeService.getEmployeeById(
+    req.user!,
+    String(req.params.id)
+  );
+  sendSuccess(res, { employee });
+}
+
+async function update(req: Request, res: Response): Promise<void> {
+  const employee = await employeeService.updateEmployee(
+    req.user!,
+    String(req.params.id),
+    req.body
+  );
+  sendSuccess(res, { employee }, "Employee updated");
+}
+
+async function activate(req: Request, res: Response): Promise<void> {
+  const employee = await employeeService.setEmployeeActive(
+    req.user!,
+    String(req.params.id),
+    true
+  );
+  sendSuccess(res, { employee }, "Employee activated");
+}
+
+async function deactivate(req: Request, res: Response): Promise<void> {
+  const employee = await employeeService.setEmployeeActive(
+    req.user!,
+    String(req.params.id),
+    false
+  );
+  sendSuccess(res, { employee }, "Employee deactivated");
+}
+
+async function remove(req: Request, res: Response): Promise<void> {
+  await employeeService.deleteEmployee(req.user!, String(req.params.id));
+  sendSuccess(res, null, "Employee deleted");
+}
+
+async function getMe(req: Request, res: Response): Promise<void> {
+  const employee = await employeeService.getMyProfile(req.user!.id);
+  sendSuccess(res, { employee });
+}
+
+async function updateMe(req: Request, res: Response): Promise<void> {
+  const employee = await employeeService.updateMyProfile(req.user!.id, req.body);
+  sendSuccess(res, { employee }, "Profile updated");
+}
+
+export { list, create, getById, update, activate, deactivate, remove, getMe, updateMe };
