@@ -25,8 +25,18 @@ export function DistributionPieChart({ data }: { data: PieSlice[] }) {
             <Cell key={slice.name} fill={slice.color} stroke="none" />
           ))}
         </Pie>
-        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
-        <Legend wrapperStyle={{ fontSize: 12 }} />
+        <Tooltip
+          contentStyle={{
+            fontSize: 12,
+            borderRadius: 10,
+            backgroundColor: "rgba(23, 23, 23, 0.8)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
+            color: "#fff"
+          }}
+        />
+        <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
       </PieChart>
     </ResponsiveContainer>
   );
