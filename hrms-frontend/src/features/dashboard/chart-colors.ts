@@ -37,5 +37,5 @@ export const CATEGORICAL_CHART_COLORS = [
   "#eb6834", // orange
 ];
 
-export const CHART_GRID_COLOR = "#e1e0d9";
-export const CHART_AXIS_COLOR = "#898781";
+export const CHART_GRID_COLOR = "var(--chart-grid, rgba(255, 255, 255, 0.08))";
+export const CHART_AXIS_COLOR = "var(--chart-axis, rgba(255, 255, 255, 0.4))";

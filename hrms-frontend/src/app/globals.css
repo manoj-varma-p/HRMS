@@ -8,7 +8,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -81,6 +81,8 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --chart-grid: rgba(0, 0, 0, 0.08);
+  --chart-axis: rgba(0, 0, 0, 0.45);
 }
 
 .dark {
@@ -108,6 +110,8 @@
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --sidebar: oklch(0.205 0 0);
+  --chart-grid: rgba(255, 255, 255, 0.08);
+  --chart-axis: rgba(255, 255, 255, 0.4);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -115,6 +119,12 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+.dark {
+  /* Override accent on dark mode to turn white with dark text on hover */
+  --accent: oklch(1 0 0);
+  --accent-foreground: oklch(0.145 0 0);
 }
 
 @layer base {
@@ -127,4 +137,143 @@
   html {
     @apply font-sans;
   }
+  button,
+  [role="button"],
+  [data-slot="button"],
+  [data-slot="select-trigger"],
+  a {
+    cursor: pointer;
+  }
+  button:disabled,
+  [disabled],
+  .disabled {
+    cursor: not-allowed !important;
+  }
+}
+
+/* Global macOS-style Smooth Hover Transitions and Color Overrides */
+.transition-colors,
+[class*="hover:bg-accent"],
+[class*="group-hover:bg-white"],
+[data-slot="card"] {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transition-duration: 400ms !important;
+}
+
+/* Force dark text on child components when hover causes background to turn white */
+.dark [class*="hover:bg-accent"]:hover,
+.dark [class*="group-hover:bg-white"]:hover,
+.dark .group:hover [class*="group-hover:bg-white"] {
+  color: oklch(0.145 0 0) !important;
+}
+
+.dark [class*="hover:bg-accent"]:hover .text-muted-foreground,
+.dark [class*="group-hover:bg-white"]:hover .text-muted-foreground,
+.dark .group:hover [class*="group-hover:bg-white"] .text-muted-foreground,
+.dark [class*="hover:bg-accent"]:hover .text-card-foreground,
+.dark [class*="group-hover:bg-white"]:hover .text-card-foreground,
+.dark .group:hover [class*="group-hover:bg-white"] .text-card-foreground {
+  color: oklch(0.145 0 0 / 70%) !important;
+}
+
+.dark [class*="hover:bg-accent"]:hover svg,
+.dark [class*="group-hover:bg-white"]:hover svg,
+.dark .group:hover [class*="group-hover:bg-white"] svg {
+  color: oklch(0.145 0 0) !important;
+}
+
+/* Premium macOS style select/dropdown animation */
+[data-slot="select-content"] {
+  transform-origin: top center;
+  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1), opacity 280ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+[data-slot="select-content"][data-open],
+[data-slot="select-content"][data-state="open"] {
+  animation: mac-dropdown-open 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+[data-slot="select-content"][data-closed],
+[data-slot="select-content"][data-state="closed"] {
+  animation: mac-dropdown-close 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+@keyframes mac-dropdown-open {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mac-dropdown-close {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* 1. Frosted Glassmorphism for Dialogs, Popovers and Dropdowns */
+.dark [data-slot="select-content"],
+.dark [data-slot="popover"],
+.dark [role="listbox"],
+.dark .bg-popover {
+  background-color: rgba(33, 33, 33, 0.75) !important;
+  backdrop-filter: blur(16px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 2. Elegant Pill-Shaped Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(1 0 0 / 12%);
+  border-radius: 9999px;
+  transition: background-color 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(1 0 0 / 25%);
+}
+
+/* 3. Card Glowing Borders & Premium Lift */
+.dark [data-slot="card"] {
+  border: 1px solid oklch(1 0 0 / 7%) !important;
+}
+
+.dark [data-slot="card"]:hover,
+.dark .group:hover [data-slot="card"] {
+  border-color: oklch(1 0 0 / 18%) !important;
+  box-shadow: 
+    0 15px 35px -10px rgba(0, 0, 0, 0.55),
+    0 0 18px 2px rgba(255, 255, 255, 0.035) !important;
+}
+
+/* 4. Smooth macOS-style Focus Rings */
+input:focus,
+select:focus,
+textarea:focus,
+[data-slot="select-trigger"]:focus,
+[class*="focus-visible:ring"]:focus-visible,
+[data-slot="select-trigger"][data-active="true"] {
+  outline: none !important;
+  box-shadow: 0 0 0 3px oklch(1 0 0 / 8%) !important;
+  border-color: oklch(1 0 0 / 25%) !important;
+  transition: box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
