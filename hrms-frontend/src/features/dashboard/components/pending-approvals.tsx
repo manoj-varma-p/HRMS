@@ -43,9 +43,9 @@ export function PendingApprovals() {
   const isEmpty = !isLoading && (leaves?.length ?? 0) === 0 && (corrections?.length ?? 0) === 0;
 
   return (
-    <Card>
+    <Card className="border-border/60">
       <CardHeader>
-        <CardTitle className="text-base">Pending Approvals</CardTitle>
+        <CardTitle className="text-base font-semibold">Pending Approvals</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {isLoading && <Skeleton className="h-32 w-full" />}

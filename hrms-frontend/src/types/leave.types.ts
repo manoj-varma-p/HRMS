@@ -14,7 +14,10 @@ export interface AnnualLeaveBalanceBucket {
 
 export interface LeaveBalance {
   year: number;
-  sick: LeaveBalanceBucket;
+  sick: {
+    half1: LeaveBalanceBucket;
+    half2: LeaveBalanceBucket;
+  };
   casualPaid: {
     half1: LeaveBalanceBucket;
     half2: LeaveBalanceBucket;

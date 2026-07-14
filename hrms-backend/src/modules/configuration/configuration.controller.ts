@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { ApiError } from "../../shared/errors/ApiError";
 import { sendSuccess } from "../../shared/utils/ApiResponse";
 import * as configurationService from "./configuration.service";
 
@@ -10,6 +11,14 @@ async function get(req: Request, res: Response): Promise<void> {
 async function updateCompanyProfile(req: Request, res: Response): Promise<void> {
   const configuration = await configurationService.updateCompanyProfile(req.user!, req.body);
   sendSuccess(res, { configuration }, "Company profile updated");
+}
+
+async function uploadLogo(req: Request, res: Response): Promise<void> {
+  if (!req.file) {
+    throw new ApiError(422, "Upload a PNG, JPEG, WebP, or SVG image under 2MB");
+  }
+  const configuration = await configurationService.uploadCompanyLogo(req.user!, req.file);
+  sendSuccess(res, { configuration }, "Company logo updated");
 }
 
 async function updateOfficeSettings(req: Request, res: Response): Promise<void> {
@@ -54,6 +63,7 @@ async function updateGeneralSettings(req: Request, res: Response): Promise<void>
 export {
   get,
   updateCompanyProfile,
+  uploadLogo,
   updateOfficeSettings,
   updateLeavePolicy,
   updateNotificationSettings,

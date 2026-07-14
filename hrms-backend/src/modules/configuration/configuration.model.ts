@@ -25,11 +25,12 @@ export interface IOfficeSettings {
 }
 
 export interface ILeavePolicy {
-  sickQuota: number;
-  // Casual Paid Leave is split into two half-year buckets (Jan-Jun, Jul-Dec)
-  // rather than one flat annual quota — this is the per-half amount, so the
-  // effective yearly total is 2x this value. See leave.service.ts's
-  // getLeaveBalance for how unused H1 days carry into H2.
+  // Sick and Casual Paid Leave are both split into two half-year buckets
+  // (Jan-Jun, Jul-Dec) rather than one flat annual quota — these are the
+  // per-half amounts, so each type's effective yearly total is 2x this
+  // value. See leave.service.ts's getLeaveBalance for how unused H1 days
+  // carry into H2 (shared carryForwardEnabled toggle below, applies to both).
+  sickQuotaPerHalf: number;
   casualPaidQuotaPerHalf: number;
   casualPaidNoticeDays: number;
   // Earned-leave accrual rate for Annual Leave: credited once per fully
@@ -141,7 +142,7 @@ const officeSettingsSchema = new Schema<IOfficeSettings>(
 
 const leavePolicySchema = new Schema<ILeavePolicy>(
   {
-    sickQuota: { type: Number, required: true, default: 10 },
+    sickQuotaPerHalf: { type: Number, required: true, default: 3 },
     casualPaidQuotaPerHalf: { type: Number, required: true, default: 3 },
     casualPaidNoticeDays: { type: Number, required: true, default: 4 },
     annualAccrualPerMonth: { type: Number, required: true, default: 1.25 },

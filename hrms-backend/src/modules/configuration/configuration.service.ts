@@ -14,10 +14,16 @@ import {
 import { refreshConfigCache } from "./configuration.cache";
 import { sendTestEmail as dispatchTestEmail } from "../email/email.service";
 import { UserModel } from "../user/user.model";
+import { uploadObject } from "../../shared/services/s3.client";
 
 interface Actor {
   id: string;
 }
+
+// Fixed — there is only ever one company logo, so there's nothing to key
+// by id/version; a re-upload simply overwrites this same S3 object.
+export const COMPANY_LOGO_S3_KEY = "company/logo";
+export const COMPANY_LOGO_PUBLIC_PATH = "/public/company-logo";
 
 // Always includes the select:false secret fields, even for callers that
 // never touch email settings — omitting them here would leave those paths
@@ -95,6 +101,13 @@ async function saveAndRefresh(actor: Actor, config: IConfiguration) {
 export async function updateCompanyProfile(actor: Actor, input: Partial<ICompanyProfile>) {
   const config = await getOrCreateConfiguration();
   Object.assign(config.companyProfile, input);
+  return saveAndRefresh(actor, config);
+}
+
+export async function uploadCompanyLogo(actor: Actor, file: Express.Multer.File) {
+  await uploadObject(COMPANY_LOGO_S3_KEY, file.buffer, file.mimetype);
+  const config = await getOrCreateConfiguration();
+  config.companyProfile.logoUrl = COMPANY_LOGO_PUBLIC_PATH;
   return saveAndRefresh(actor, config);
 }
 

@@ -19,9 +19,9 @@ export function ChartCard({
   children,
 }: ChartCardProps) {
   return (
-    <Card>
+    <Card className="border-border/60 transition-colors duration-300 hover:border-border">
       <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
+        <CardTitle className="text-base font-semibold">{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent>

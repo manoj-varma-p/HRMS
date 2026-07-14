@@ -8,6 +8,8 @@ export interface AuthUser {
   role: Role;
   status: EmployeeStatus;
   mustChangePassword: boolean;
+  // Departments this user heads — [] for everyone else. Not a role.
+  departmentHeadOf: { id: string; name: string }[];
 }
 
 export interface AuthSession {

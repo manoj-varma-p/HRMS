@@ -5,6 +5,11 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000";
 const API_VERSION = "/api/v1";
 
+/** For plain <img>/<a> URLs (no auth header, not a JSON apiFetch call) — e.g. the public logo proxy. */
+export function apiAssetUrl(path: string): string {
+  return `${API_BASE_URL}${API_VERSION}${path}`;
+}
+
 async function request(path: string, init?: RequestInit): Promise<Response> {
   const token = getAccessToken();
   return fetch(`${API_BASE_URL}${API_VERSION}${path}`, {
@@ -70,6 +75,55 @@ export async function apiFetch<T>(
   }
 
   return res.json() as Promise<T>;
+}
+
+// XMLHttpRequest, not fetch — it's the only browser API that reports
+// upload progress, which the file-upload UI needs for anything larger
+// than a trivial image. Mirrors apiFetch's auth/401-retry contract.
+export function apiUpload<T>(
+  path: string,
+  formData: FormData,
+  onProgress?: (percent: number) => void
+): Promise<T> {
+  function send(token: string | null): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `${API_BASE_URL}${API_VERSION}${path}`);
+      xhr.withCredentials = true;
+      if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+      xhr.upload.onprogress = (e) => {
+        if (onProgress && e.lengthComputable) {
+          onProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      };
+
+      xhr.onload = async () => {
+        if (xhr.status === 401) {
+          const refreshed = await refreshAccessToken();
+          if (refreshed) {
+            resolve(await send(getAccessToken()));
+            return;
+          }
+        }
+        let body: { message?: string } | null = null;
+        try {
+          body = JSON.parse(xhr.responseText);
+        } catch {
+          // non-JSON error body — fall through to the generic message below
+        }
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(body as T);
+        } else {
+          reject(new Error(body?.message ?? `Upload failed: ${xhr.status}`));
+        }
+      };
+      xhr.onerror = () => reject(new Error("Upload failed: network error"));
+      xhr.send(formData);
+    });
+  }
+
+  return send(getAccessToken());
 }
 
 export async function apiFetchBlob(path: string): Promise<Blob> {

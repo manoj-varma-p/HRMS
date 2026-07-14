@@ -63,6 +63,14 @@ async function deactivate(req: Request, res: Response): Promise<void> {
   sendSuccess(res, { employee }, "Employee deactivated");
 }
 
+async function promoteToPermanent(req: Request, res: Response): Promise<void> {
+  const employee = await employeeService.promoteToPermanent(
+    req.user!,
+    String(req.params.id)
+  );
+  sendSuccess(res, { employee }, "Employee marked as Permanent");
+}
+
 async function remove(req: Request, res: Response): Promise<void> {
   await employeeService.deleteEmployee(req.user!, String(req.params.id));
   sendSuccess(res, null, "Employee deleted");
@@ -78,4 +86,15 @@ async function updateMe(req: Request, res: Response): Promise<void> {
   sendSuccess(res, { employee }, "Profile updated");
 }
 
-export { list, create, getById, update, activate, deactivate, remove, getMe, updateMe };
+export {
+  list,
+  create,
+  getById,
+  update,
+  activate,
+  deactivate,
+  promoteToPermanent,
+  remove,
+  getMe,
+  updateMe,
+};

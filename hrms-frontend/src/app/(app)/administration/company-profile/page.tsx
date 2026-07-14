@@ -41,6 +41,10 @@ function CompanyProfileForm({ config }: { config: Configuration }) {
     onSuccess: (updated) => {
       toast.success("Company profile updated");
       queryClient.setQueryData(CONFIGURATION_QUERY_KEY, updated);
+      // Name/logo also feed the nav's CompanyLogo, which reads a separate,
+      // unauthenticated-endpoint-backed query key — kept in sync here
+      // rather than making that public branding fetch admin-gated too.
+      queryClient.invalidateQueries({ queryKey: ["company-branding"] });
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -48,7 +52,14 @@ function CompanyProfileForm({ config }: { config: Configuration }) {
   return (
     <>
       <SettingsSection title="Company Details">
-        <LogoUploader value={draft.logoUrl} onChange={(logoUrl) => setDraft({ ...draft, logoUrl })} />
+        <LogoUploader
+          value={draft.logoUrl}
+          onUploaded={(updated) => {
+            queryClient.setQueryData(CONFIGURATION_QUERY_KEY, updated);
+            queryClient.invalidateQueries({ queryKey: ["company-branding"] });
+            setDraft((current) => ({ ...current, logoUrl: updated.companyProfile.logoUrl }));
+          }}
+        />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">

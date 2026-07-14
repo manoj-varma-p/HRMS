@@ -55,6 +55,12 @@ router.patch(
   validate(getEmployeeSchema),
   employeeController.deactivate
 );
+router.patch(
+  "/:id/promote-to-permanent",
+  manage,
+  validate(getEmployeeSchema),
+  employeeController.promoteToPermanent
+);
 router.delete(
   "/:id",
   manage,

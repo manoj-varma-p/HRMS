@@ -5,6 +5,8 @@ export const API_ENDPOINTS = {
     LOGOUT: "/auth/logout",
     REFRESH: "/auth/refresh",
     SET_PASSWORD: "/auth/set-password",
+    FORGOT_PASSWORD: "/auth/forgot-password",
+    RESET_PASSWORD: "/auth/reset-password",
     ME: "/auth/me",
     ADMIN_RESET_PASSWORD: (userId: string) =>
       `/auth/admin/reset-password/${userId}`,
@@ -16,6 +18,7 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string) => `/employees/${id}`,
     ACTIVATE: (id: string) => `/employees/${id}/activate`,
     DEACTIVATE: (id: string) => `/employees/${id}/deactivate`,
+    PROMOTE_TO_PERMANENT: (id: string) => `/employees/${id}/promote-to-permanent`,
   },
   DEPARTMENTS: {
     LIST: "/departments",
@@ -23,6 +26,7 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/departments/${id}`,
     ACTIVATE: (id: string) => `/departments/${id}/activate`,
     DEACTIVATE: (id: string) => `/departments/${id}/deactivate`,
+    SET_HEAD: (id: string) => `/departments/${id}/head`,
   },
   DESIGNATIONS: {
     LIST: "/designations",
@@ -101,6 +105,7 @@ export const API_ENDPOINTS = {
   CONFIGURATION: {
     GET: "/configuration",
     COMPANY_PROFILE: "/configuration/company-profile",
+    LOGO: "/configuration/logo",
     OFFICE_SETTINGS: "/configuration/office-settings",
     LEAVE_POLICY: "/configuration/leave-policy",
     NOTIFICATION_SETTINGS: "/configuration/notification-settings",
@@ -108,5 +113,27 @@ export const API_ENDPOINTS = {
     SEND_TEST_EMAIL: "/configuration/email-settings/test-email",
     SECURITY_SETTINGS: "/configuration/security-settings",
     GENERAL_SETTINGS: "/configuration/general-settings",
+  },
+  PUBLIC: {
+    COMPANY_BRANDING: "/public/company-branding",
+    COMPANY_LOGO: "/public/company-logo",
+  },
+  DOCUMENTS: {
+    LIST: (employeeId: string) => `/employees/${employeeId}/documents`,
+    UPLOAD: (employeeId: string) => `/employees/${employeeId}/documents`,
+    DOWNLOAD_URL: (documentId: string) => `/documents/${documentId}/download-url`,
+    DELETE: (documentId: string) => `/documents/${documentId}`,
+    RESTORE: (documentId: string) => `/documents/${documentId}/restore`,
+    APPROVE: (documentId: string) => `/documents/${documentId}/approve`,
+    REJECT: (documentId: string) => `/documents/${documentId}/reject`,
+  },
+  TASKS: {
+    MINE: "/tasks/me",
+    DETAIL: (taskId: string) => `/tasks/${taskId}`,
+    STATUS: (taskId: string) => `/tasks/${taskId}/status`,
+    COMMENTS: (taskId: string) => `/tasks/${taskId}/comments`,
+    ATTACHMENTS: (taskId: string) => `/tasks/${taskId}/attachments`,
+    ATTACHMENT_DOWNLOAD_URL: (attachmentId: string) =>
+      `/task-attachments/${attachmentId}/download-url`,
   },
 } as const;

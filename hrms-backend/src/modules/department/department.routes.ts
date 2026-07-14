@@ -7,6 +7,7 @@ import {
   createDepartmentSchema,
   listDepartmentsSchema,
   setDepartmentActiveSchema,
+  setDepartmentHeadSchema,
   updateDepartmentSchema,
 } from "./department.validation";
 import * as departmentController from "./department.controller";
@@ -35,6 +36,12 @@ router.patch(
   manage,
   validate(setDepartmentActiveSchema),
   departmentController.deactivate
+);
+router.patch(
+  "/:id/head",
+  manage,
+  validate(setDepartmentHeadSchema),
+  departmentController.setHead
 );
 
 export default router;

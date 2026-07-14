@@ -10,7 +10,10 @@ export const sendTestEmailSchema = z.object({
 export const updateCompanyProfileSchema = z.object({
   body: z.object({
     name: z.string().trim().min(1).max(200).optional(),
-    logoUrl: z.string().trim().url().nullable().optional(),
+    // Set only by the logo upload endpoint now (an internal, app-relative
+    // path like "/public/company-logo"), never typed in by a user — so
+    // this no longer validates as an absolute URL, just a non-empty path.
+    logoUrl: z.string().trim().min(1).nullable().optional(),
     email: z.string().trim().email().nullable().optional(),
     phone: z.string().trim().max(30).nullable().optional(),
     website: z.string().trim().url().nullable().optional(),
@@ -34,8 +37,11 @@ export const updateOfficeSettingsSchema = z.object({
 
 export const updateLeavePolicySchema = z.object({
   body: z.object({
-    sickQuota: z.coerce.number().int().min(0).max(365).optional(),
-    casualPaidQuota: z.coerce.number().int().min(0).max(365).optional(),
+    sickQuotaPerHalf: z.coerce.number().int().min(0).max(365).optional(),
+    casualPaidQuotaPerHalf: z.coerce.number().int().min(0).max(365).optional(),
+    casualPaidNoticeDays: z.coerce.number().int().min(0).max(365).optional(),
+    annualAccrualPerMonth: z.coerce.number().min(0).max(31).optional(),
+    annualNoticeDays: z.coerce.number().int().min(0).max(365).optional(),
     unpaidAllowed: z.coerce.boolean().optional(),
     carryForwardEnabled: z.coerce.boolean().optional(),
     minDurationDays: z.coerce.number().int().min(1).max(365).optional(),

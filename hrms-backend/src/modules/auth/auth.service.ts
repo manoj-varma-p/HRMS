@@ -1,9 +1,14 @@
 import { ApiError } from "../../shared/errors/ApiError";
+import { env } from "../../shared/config/env";
 import { ROLES } from "../../shared/constants/roles";
 import { LOGIN_ALLOWED_STATUSES } from "../../shared/constants/employeeStatus";
+import { NOTIFICATION_TYPES } from "../../shared/constants/notificationTypes";
+import { toId } from "../../shared/utils/toId";
 import {
   compareSecret,
+  generateResetToken,
   generateTempPassword,
+  hashResetToken,
   hashSecret,
   validatePasswordAgainstPolicy,
 } from "../../shared/utils/password";
@@ -14,9 +19,15 @@ import {
   verifyRefreshToken,
 } from "../../shared/utils/token";
 import { getSecuritySettings } from "../configuration/configuration.cache";
+import { getDepartmentsHeadedBy } from "../department/department.cache";
+import { notifyUser } from "../notifications/notifications.service";
 import { IUser, UserModel } from "../user/user.model";
 import { AuthTokens, PublicUser } from "./auth.types";
 
+// Reads department-head info from an in-memory cache (never a DB query
+// here) — see department.cache.ts. Deliberately kept synchronous: every
+// call site below (login, refresh, setPassword, getMe) already has the
+// IUser in hand, so there's no reason for this to be async.
 function toPublicUser(user: IUser): PublicUser {
   return {
     id: user._id.toString(),
@@ -25,6 +36,7 @@ function toPublicUser(user: IUser): PublicUser {
     role: user.role,
     status: user.status,
     mustChangePassword: user.mustChangePassword,
+    departmentHeadOf: getDepartmentsHeadedBy(user._id.toString()),
   };
 }
 
@@ -173,6 +185,65 @@ export async function adminResetPassword(
   await target.save();
 
   return { tempPassword, user: toPublicUser(target) };
+}
+
+const RESET_TOKEN_TTL_MINUTES = 30;
+
+// Self-service "forgot password": emails a one-time link (never a temp
+// password to retype — that path is error-prone and reads as "broken" to
+// users, since it needs a manual sign-in step before the app even lets
+// them choose a new password). Always resolves silently — whether or not
+// the email matches an account — so this can't be used to enumerate
+// registered emails.
+export async function forgotPassword(email: string): Promise<void> {
+  const user = await UserModel.findOne({ email });
+  if (!user || !LOGIN_ALLOWED_STATUSES.includes(user.status)) {
+    return;
+  }
+
+  const token = generateResetToken();
+  user.passwordResetTokenHash = hashResetToken(token);
+  user.passwordResetExpiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MINUTES * 60 * 1000);
+  await user.save();
+
+  await notifyUser({
+    user: toId(user),
+    type: NOTIFICATION_TYPES.PASSWORD_RESET,
+    title: "Password reset requested",
+    message: "A password reset link was requested for your account",
+    email: {
+      template: "password-reset",
+      data: {
+        fullName: user.fullName,
+        resetUrl: `${env.clientOrigin}/reset-password?token=${token}`,
+        expiresInMinutes: RESET_TOKEN_TTL_MINUTES,
+      },
+    },
+  });
+}
+
+// Consumes the link token from forgotPassword above: verified by exact
+// hash match plus expiry, single-use (both cleared as soon as they're
+// consumed, whether that's here or by a fresh forgotPassword call
+// superseding the old one), and — like adminResetPassword — invalidates
+// any existing session so a stale device gets signed out.
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  validatePasswordAgainstPolicy(newPassword);
+
+  const user = await UserModel.findOne({
+    passwordResetTokenHash: hashResetToken(token),
+    passwordResetExpiresAt: { $gt: new Date() },
+  });
+  if (!user) {
+    throw new ApiError(400, "This reset link is invalid or has expired");
+  }
+
+  user.passwordHash = await hashSecret(newPassword);
+  user.mustChangePassword = false;
+  user.refreshTokenHash = null;
+  user.passwordResetTokenHash = null;
+  user.passwordResetExpiresAt = null;
+  await user.save();
 }
 
 export async function getMe(userId: string): Promise<PublicUser> {

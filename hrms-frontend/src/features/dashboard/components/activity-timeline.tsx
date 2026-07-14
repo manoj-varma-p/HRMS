@@ -11,9 +11,9 @@ interface ActivityTimelineProps {
 
 export function ActivityTimeline({ activities, isLoading }: ActivityTimelineProps) {
   return (
-    <Card>
+    <Card className="border-border/60">
       <CardHeader>
-        <CardTitle className="text-base">Recent Activity</CardTitle>
+        <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading && <Skeleton className="h-48 w-full" />}
@@ -23,10 +23,13 @@ export function ActivityTimeline({ activities, isLoading }: ActivityTimelineProp
         )}
 
         {!isLoading && activities && activities.length > 0 && (
-          <ol className="flex flex-col gap-4">
-            {activities.map((entry) => (
-              <li key={entry.id} className="flex items-start gap-3">
-                <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+          <ol className="flex flex-col">
+            {activities.map((entry, index) => (
+              <li key={entry.id} className="relative flex items-start gap-3 pb-4 last:pb-0">
+                {index < activities.length - 1 && (
+                  <div className="absolute top-3 left-0.75 h-full w-px bg-border" aria-hidden />
+                )}
+                <div className="relative mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary ring-4 ring-background" />
                 <div className="flex flex-1 flex-col">
                   <span className="text-sm">{formatActivityLabel(entry)}</span>
                   <span className="text-xs text-muted-foreground">

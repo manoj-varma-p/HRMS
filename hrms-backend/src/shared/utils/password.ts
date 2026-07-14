@@ -47,3 +47,17 @@ export function generateTempPassword(length = 12): string {
   }
   return result;
 }
+
+// For the password-reset link token: unlike passwordHash/refreshTokenHash
+// (bcrypt, since those are compared against a human-guessable input), this
+// token is already 256 bits of crypto.randomBytes — a fast, deterministic
+// sha256 digest is enough to let it be looked up by exact match, and is
+// what makes the lookup a single indexed query instead of a table scan
+// with per-row bcrypt.compare calls.
+export function generateResetToken(): string {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+export function hashResetToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}

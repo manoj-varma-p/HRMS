@@ -4,6 +4,7 @@ export const ROUTES = {
   ATTENDANCE_TEAM: "/attendance/team",
   LEAVE: "/leave",
   LEAVE_ADMIN: "/leave/admin",
+  TASKS: "/tasks",
   EMPLOYEES: "/employees",
   EMPLOYEE_NEW: "/employees/new",
   EMPLOYEE_DETAIL: (id: string) => `/employees/${id}`,
@@ -30,5 +31,7 @@ export const ROUTES = {
   ADMINISTRATION_DESIGNATIONS: "/administration/designations",
   ADMINISTRATION_HOLIDAYS: "/administration/holidays",
   LOGIN: "/login",
+  FORGOT_PASSWORD: "/forgot-password",
+  RESET_PASSWORD: "/reset-password",
   SET_PASSWORD: "/set-password",
 } as const;

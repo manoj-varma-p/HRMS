@@ -18,10 +18,14 @@ const optionalDate = z
 // Unlike optionalDate, an empty value here is meaningful — it means
 // "clear the override, go back to the company default" — so it maps to
 // null (an explicit value to save), not undefined (field left untouched).
+// z.null() has to be listed explicitly, not just z.literal("") — without it,
+// a literal JSON `null` falls through to z.coerce.number(), and
+// Number(null) === 0, silently saving "0 minutes grace" instead of clearing
+// the override.
 const optionalGraceMinutes = z
-  .union([z.literal(""), z.coerce.number().int().min(0).max(480)])
+  .union([z.literal(""), z.null(), z.coerce.number().int().min(0).max(480)])
   .optional()
-  .transform((v) => (v === "" ? null : v));
+  .transform((v) => (v === "" || v === null ? null : v));
 
 export const listEmployeesSchema = z.object({
   query: z.object({

@@ -11,7 +11,6 @@ import { AttendanceDayDialog } from "@/features/attendance/components/attendance
 import { CorrectionRequestDialog } from "@/features/attendance/components/correction-request-dialog";
 import { LeaveBalanceCard } from "@/features/leave/components/leave-balance-card";
 import { RecentAnnouncementsWidget } from "@/features/announcements/components/recent-announcements-widget";
-import { RecentNotificationsWidget } from "@/features/notifications/components/recent-notifications-widget";
 import { WelcomeHeader } from "./components/welcome-header";
 import { RecentLeaveRequests } from "./components/recent-leave-requests";
 import { UpcomingHolidays } from "./components/upcoming-holidays";
@@ -48,10 +47,7 @@ export function EmployeeDashboard() {
         <UpcomingHolidays />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <RecentNotificationsWidget />
-        <RecentAnnouncementsWidget />
-      </div>
+      <RecentAnnouncementsWidget />
 
       <QuickActions actions={QUICK_ACTIONS} />
 

@@ -8,6 +8,7 @@ import { ROLES } from "@/constants/roles";
 import { ROUTES } from "@/constants/routes";
 import { departmentService } from "@/services/department.service";
 import { ReferenceDataManager } from "@/features/administration/components/reference-data-manager";
+import { DepartmentHeadCell } from "@/features/administration/components/department-head-cell";
 
 export default function AdministrationDepartmentsPage() {
   const router = useRouter();
@@ -31,6 +32,10 @@ export default function AdministrationDepartmentsPage() {
           itemLabel="Department"
           queryKey="departments"
           service={departmentService}
+          extraColumn={{
+            header: "Head",
+            render: (item) => <DepartmentHeadCell department={item} />,
+          }}
         />
       </div>
     </RoleGuard>

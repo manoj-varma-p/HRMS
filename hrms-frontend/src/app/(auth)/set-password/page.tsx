@@ -3,13 +3,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
 import { SetPasswordForm } from "@/features/auth/components/set-password-form";
 import { useAuth } from "@/hooks/use-auth";
 import { ROUTES } from "@/constants/routes";
@@ -39,17 +32,14 @@ export default function SetPasswordPage() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Set your password</CardTitle>
-        <CardDescription>
-          You&apos;re signing in for the first time. Choose a new password to
-          continue.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <SetPasswordForm />
-      </CardContent>
-    </Card>
+    <>
+      <div className="flex flex-col gap-2">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">Set your password</h2>
+        <p className="text-sm text-muted-foreground">
+          You&apos;re signing in for the first time. Choose a new password to continue.
+        </p>
+      </div>
+      <SetPasswordForm />
+    </>
   );
 }

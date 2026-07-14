@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
+import { CompanyLogo } from "@/components/layout/company-logo";
 import { GlobalSearch } from "@/features/reports/components/global-search";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { useAuth } from "@/hooks/use-auth";
@@ -40,7 +41,7 @@ export function Topbar() {
   }
 
   return (
-    <header className="flex h-14 items-center justify-between border-b bg-background px-4 print:hidden">
+    <header className="flex h-14 shrink-0 items-center justify-between border-b bg-background px-4 print:hidden">
       <div className="flex items-center gap-2">
         <Sheet>
           <SheetTrigger
@@ -51,12 +52,12 @@ export function Topbar() {
           <SheetContent side="left" className="w-64 p-0">
             <SheetTitle className="sr-only">Navigation</SheetTitle>
             <div className="flex h-14 items-center border-b px-4 font-semibold">
-              HRMS
+              <CompanyLogo />
             </div>
             <SidebarNav />
           </SheetContent>
         </Sheet>
-        <span className="font-semibold md:hidden">HRMS</span>
+        <CompanyLogo className="font-semibold md:hidden" />
       </div>
 
       <GlobalSearch />

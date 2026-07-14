@@ -17,7 +17,7 @@ export interface OfficeSettings {
 }
 
 export interface LeavePolicy {
-  sickQuota: number;
+  sickQuotaPerHalf: number;
   casualPaidQuotaPerHalf: number;
   casualPaidNoticeDays: number;
   annualAccrualPerMonth: number;

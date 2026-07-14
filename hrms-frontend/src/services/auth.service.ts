@@ -30,6 +30,20 @@ export function setPassword(newPassword: string) {
   });
 }
 
+export function forgotPassword(email: string) {
+  return apiFetch<ApiSuccess<null>>(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function resetPassword(token: string, newPassword: string) {
+  return apiFetch<ApiSuccess<null>>(API_ENDPOINTS.AUTH.RESET_PASSWORD, {
+    method: "POST",
+    body: JSON.stringify({ token, newPassword }),
+  });
+}
+
 export function me() {
   return apiFetch<ApiSuccess<{ user: AuthUser }>>(API_ENDPOINTS.AUTH.ME);
 }

@@ -1,8 +1,6 @@
-import { enumerateISTDateStrings, getISTDateString, getMonthBounds } from "../../shared/utils/istDate";
+import { enumerateISTDateStrings, getISTDateString } from "../../shared/utils/istDate";
 import { isConfiguredWeekend } from "../configuration/configuration.cache";
 import { HolidayModel } from "../holiday/holiday.model";
-import { LEAVE_REQUEST_STATUS } from "../../shared/constants/leaveTypes";
-import { LeaveRequestModel } from "./leave-request.model";
 
 /**
  * Working-day count within [startDate, endDate], inclusive — excludes
@@ -49,26 +47,29 @@ function monthKeyAdd(monthKey: string, delta: number): string {
 }
 
 /**
- * Annual Leave's quota isn't a fixed number set upfront — it's earned leave,
- * accruing once per fully-completed calendar month in which the employee
- * took no leave of any kind (Sick, Casual, Annual, or Unpaid). Computed
- * fresh from LeaveRequestModel every time rather than tracked as a running
- * counter, so it stays correct even if a past request is later edited or
- * backfilled — same "recompute from source data" approach the dashboard's
- * trend charts already use. The current calendar month never counts yet:
- * accrual only credits once a month has fully passed.
+ * Counts fully-completed calendar months within `year`, from the month
+ * `permanentSince` falls in (or January of `year`, whichever is later)
+ * through the last month fully passed before `asOfDateStr` — the current
+ * calendar month never counts yet, since accrual only credits once a month
+ * has fully passed. Returns 0 for an employee who isn't Permanent at all
+ * (permanentSince is null) or wasn't yet Permanent at any point in `year`.
+ *
+ * This only counts *eligible months* — it doesn't credit anything by
+ * itself. leave.service.ts's creditAnnualAccrual diffs this against a
+ * LeaveBalance's stored annualAccruedThroughMonth to find out how many
+ * *new* months to credit, so calling this repeatedly is always safe.
  */
-export async function getAnnualLeaveAccrued(
-  employeeId: string,
-  joiningDate: Date,
+export function countEligibleAccrualMonths(
+  permanentSince: Date | null,
   year: number,
-  asOfDateStr: string,
-  accrualPerMonth: number
-): Promise<number> {
+  asOfDateStr: string
+): number {
+  if (!permanentSince) return 0;
+
   const yearStartMonthKey = `${year}-01`;
   const yearEndMonthKey = `${year}-12`;
-  const joiningMonthKey = getISTDateString(joiningDate).slice(0, 7);
-  const startMonthKey = joiningMonthKey > yearStartMonthKey ? joiningMonthKey : yearStartMonthKey;
+  const permanentMonthKey = getISTDateString(permanentSince).slice(0, 7);
+  const startMonthKey = permanentMonthKey > yearStartMonthKey ? permanentMonthKey : yearStartMonthKey;
 
   const currentMonthKey = asOfDateStr.slice(0, 7);
   const lastCompleteMonthKey =
@@ -78,27 +79,9 @@ export async function getAnnualLeaveAccrued(
     return 0;
   }
 
-  const monthKeys: string[] = [];
+  let count = 0;
   for (let cursor = startMonthKey; cursor <= lastCompleteMonthKey; cursor = monthKeyAdd(cursor, 1)) {
-    monthKeys.push(cursor);
+    count += 1;
   }
-  if (monthKeys.length === 0) return 0;
-
-  const scanStart = getMonthBounds(monthKeys[0]).start;
-  const scanEnd = getMonthBounds(monthKeys[monthKeys.length - 1]).end;
-
-  const requests = await LeaveRequestModel.find({
-    employee: employeeId,
-    status: LEAVE_REQUEST_STATUS.APPROVED,
-    startDate: { $lte: scanEnd },
-    endDate: { $gte: scanStart },
-  }).select("startDate endDate");
-
-  let accrued = 0;
-  for (const monthKey of monthKeys) {
-    const { start, end } = getMonthBounds(monthKey);
-    const hasLeaveThisMonth = requests.some((r) => r.startDate <= end && r.endDate >= start);
-    if (!hasLeaveThisMonth) accrued += accrualPerMonth;
-  }
-  return Math.round(accrued * 100) / 100;
+  return count;
 }

@@ -6,7 +6,9 @@ import { authRateLimiter } from "../../shared/middleware/rateLimiter";
 import { ROLES } from "../../shared/constants/roles";
 import {
   adminResetPasswordSchema,
+  forgotPasswordSchema,
   loginSchema,
+  resetPasswordSchema,
   setPasswordSchema,
 } from "./auth.validation";
 import * as authController from "./auth.controller";
@@ -20,6 +22,18 @@ router.post(
   authController.login
 );
 router.post("/refresh", authRateLimiter, authController.refresh);
+router.post(
+  "/forgot-password",
+  authRateLimiter,
+  validate(forgotPasswordSchema),
+  authController.forgotPassword
+);
+router.post(
+  "/reset-password",
+  authRateLimiter,
+  validate(resetPasswordSchema),
+  authController.resetPassword
+);
 router.post("/logout", authenticate, authController.logout);
 router.get("/me", authenticate, authController.me);
 

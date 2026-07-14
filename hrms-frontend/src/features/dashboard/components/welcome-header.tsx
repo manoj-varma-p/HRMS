@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Clock } from "lucide-react";
 import * as employeeService from "@/services/employee.service";
+
+const GRID_DOTS_STYLE: React.CSSProperties = {
+  backgroundImage: "radial-gradient(var(--border) 1px, transparent 1px)",
+  backgroundSize: "1rem 1rem",
+  maskImage: "radial-gradient(ellipse 70% 100% at 100% 0%, black, transparent)",
+  WebkitMaskImage: "radial-gradient(ellipse 70% 100% at 100% 0%, black, transparent)",
+};
 
 function useClock() {
   const [now, setNow] = useState<Date | null>(null);
@@ -29,36 +37,56 @@ export function WelcomeHeader() {
   })();
 
   return (
-    <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {greeting}
-          {data ? `, ${data.fullName.split(" ")[0]}` : ""}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {data?.designation?.name ?? "—"} · {data?.department?.name ?? "—"}
-        </p>
-      </div>
-      {now && (
-        <div className="text-right">
-          <p className="text-sm font-medium">
-            {now.toLocaleDateString("en-IN", {
-              timeZone: "Asia/Kolkata",
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-            })}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {now.toLocaleTimeString("en-IN", {
-              timeZone: "Asia/Kolkata",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}{" "}
-            IST
+    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-linear-to-br from-muted/40 to-background p-6">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-60 dark:opacity-30"
+        style={GRID_DOTS_STYLE}
+      />
+
+      <div className="relative flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            {greeting}
+            {data ? (
+              <>
+                ,{" "}
+                <span className="bg-linear-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+                  {data.fullName.split(" ")[0]}
+                </span>
+              </>
+            ) : (
+              ""
+            )}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {data?.designation?.name ?? "—"} · {data?.department?.name ?? "—"}
           </p>
         </div>
-      )}
+
+        {now && (
+          <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-background/70 px-4 py-2.5 backdrop-blur-sm">
+            <Clock className="h-4 w-4 text-primary" />
+            <div className="text-right">
+              <p className="text-sm font-semibold tabular-nums">
+                {now.toLocaleTimeString("en-IN", {
+                  timeZone: "Asia/Kolkata",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}{" "}
+                IST
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {now.toLocaleDateString("en-IN", {
+                  timeZone: "Asia/Kolkata",
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

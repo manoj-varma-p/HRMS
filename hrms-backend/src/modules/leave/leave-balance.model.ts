@@ -6,12 +6,23 @@ import { Schema, model, Document, Types } from "mongoose";
 export interface ILeaveBalance extends Document {
   employee: Types.ObjectId;
   year: number;
-  sickUsed: number;
-  // Casual Paid Leave is tracked per half-year bucket (Jan-Jun / Jul-Dec)
-  // rather than one annual counter, so H1's unused days can carry into H2
-  // without also letting H2's usage silently draw down H1's quota.
+  // Sick and Casual Paid Leave are both tracked per half-year bucket
+  // (Jan-Jun / Jul-Dec) rather than one annual counter, so H1's unused
+  // days can carry into H2 without also letting H2's usage silently draw
+  // down H1's quota.
+  sickUsedH1: number;
+  sickUsedH2: number;
   casualPaidUsedH1: number;
   casualPaidUsedH2: number;
+  // Annual Leave is a real stored balance (unlike Sick/Casual, whose
+  // *quota* is fixed by policy) — it's credited incrementally, flat
+  // +policy.annualAccrualPerMonth for every fully-completed calendar month
+  // the employee has been Permanent, no other condition. annualAccrued is
+  // the running total; annualAccruedThroughMonth (1-12, 0 = none yet) is
+  // how many months of this year have already been credited, so repeated
+  // reads/writes never double-credit the same month. See leave.service.ts.
+  annualAccrued: number;
+  annualAccruedThroughMonth: number;
   annualUsed: number;
   unpaidUsed: number;
   createdAt: Date;
@@ -22,9 +33,12 @@ const leaveBalanceSchema = new Schema<ILeaveBalance>(
   {
     employee: { type: Schema.Types.ObjectId, ref: "User", required: true },
     year: { type: Number, required: true },
-    sickUsed: { type: Number, required: true, default: 0 },
+    sickUsedH1: { type: Number, required: true, default: 0 },
+    sickUsedH2: { type: Number, required: true, default: 0 },
     casualPaidUsedH1: { type: Number, required: true, default: 0 },
     casualPaidUsedH2: { type: Number, required: true, default: 0 },
+    annualAccrued: { type: Number, required: true, default: 0 },
+    annualAccruedThroughMonth: { type: Number, required: true, default: 0 },
     annualUsed: { type: Number, required: true, default: 0 },
     unpaidUsed: { type: Number, required: true, default: 0 },
   },

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authenticate } from "../../shared/middleware/authenticate";
 import { authorize } from "../../shared/middleware/authorize";
 import { validate } from "../../shared/middleware/validate";
+import { uploadLogo as uploadLogoMiddleware } from "../../shared/middleware/upload";
 import { ROLES } from "../../shared/constants/roles";
 import {
   updateCompanyProfileSchema,
@@ -25,6 +26,7 @@ router.patch(
   validate(updateCompanyProfileSchema),
   configurationController.updateCompanyProfile
 );
+router.post("/logo", uploadLogoMiddleware, configurationController.uploadLogo);
 router.patch(
   "/office-settings",
   validate(updateOfficeSettingsSchema),

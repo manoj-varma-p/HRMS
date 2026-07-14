@@ -107,3 +107,7 @@ export function getSecuritySettings() {
 export function getNotificationSettings() {
   return getCachedConfig().notificationSettings;
 }
+
+export function getCompanyProfile() {
+  return getCachedConfig().companyProfile;
+}

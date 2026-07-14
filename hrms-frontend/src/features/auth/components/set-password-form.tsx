@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +25,10 @@ const setPasswordSchema = z
   });
 
 type SetPasswordValues = z.infer<typeof setPasswordSchema>;
+
+const fieldInputClass =
+  "h-10 rounded-xl border-border/70 pl-9 transition-all hover:border-border focus-visible:border-primary";
+const fieldLabelClass = "text-xs font-semibold tracking-wider text-muted-foreground uppercase";
 
 export function SetPasswordForm() {
   const { applySession } = useAuth();
@@ -53,46 +57,64 @@ export function SetPasswordForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       {serverError && (
-        <Alert variant="destructive">
-          <AlertDescription>{serverError}</AlertDescription>
+        <Alert variant="destructive" className="px-3 py-2.5">
+          <AlertDescription className="text-xs">{serverError}</AlertDescription>
         </Alert>
       )}
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="newPassword">New password</Label>
-        <Input
-          id="newPassword"
-          type="password"
-          autoComplete="new-password"
-          disabled={isSubmitting}
-          {...register("newPassword")}
-        />
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="newPassword" className={fieldLabelClass}>
+          New Password
+        </Label>
+        <div className="relative flex items-center">
+          <Lock className="pointer-events-none absolute left-3 h-4 w-4 text-muted-foreground/70" />
+          <Input
+            id="newPassword"
+            type="password"
+            placeholder="••••••••"
+            autoComplete="new-password"
+            disabled={isSubmitting}
+            className={fieldInputClass}
+            {...register("newPassword")}
+          />
+        </div>
         {errors.newPassword && (
-          <p className="text-sm text-destructive">
-            {errors.newPassword.message}
-          </p>
+          <p className="mt-0.5 text-xs text-destructive">{errors.newPassword.message}</p>
         )}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="confirmPassword">Confirm password</Label>
-        <Input
-          id="confirmPassword"
-          type="password"
-          autoComplete="new-password"
-          disabled={isSubmitting}
-          {...register("confirmPassword")}
-        />
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="confirmPassword" className={fieldLabelClass}>
+          Confirm Password
+        </Label>
+        <div className="relative flex items-center">
+          <Lock className="pointer-events-none absolute left-3 h-4 w-4 text-muted-foreground/70" />
+          <Input
+            id="confirmPassword"
+            type="password"
+            placeholder="••••••••"
+            autoComplete="new-password"
+            disabled={isSubmitting}
+            className={fieldInputClass}
+            {...register("confirmPassword")}
+          />
+        </div>
         {errors.confirmPassword && (
-          <p className="text-sm text-destructive">
-            {errors.confirmPassword.message}
-          </p>
+          <p className="mt-0.5 text-xs text-destructive">{errors.confirmPassword.message}</p>
         )}
       </div>
 
-      <Button type="submit" disabled={isSubmitting} className="mt-2">
-        {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-        Set password
+      <Button
+        type="submit"
+        disabled={isSubmitting}
+        className="mt-4 h-10 gap-2 rounded-xl font-semibold shadow-sm transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
+      >
+        {isSubmitting ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <ShieldCheck className="h-4 w-4" />
+        )}
+        Set Password
       </Button>
     </form>
   );

@@ -14,7 +14,9 @@ export interface IActivityLog extends Document {
     | "LeaveRequest"
     | "Holiday"
     | "Report"
-    | "Announcement";
+    | "Announcement"
+    | "EmployeeDocument"
+    | "Task";
   targetId: Types.ObjectId;
   metadata?: Record<string, unknown>;
   createdAt: Date;
@@ -37,6 +39,8 @@ const activityLogSchema = new Schema<IActivityLog>(
         "Holiday",
         "Report",
         "Announcement",
+        "EmployeeDocument",
+        "Task",
       ],
       required: true,
     },

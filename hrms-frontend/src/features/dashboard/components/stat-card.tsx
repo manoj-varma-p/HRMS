@@ -12,19 +12,19 @@ interface StatCardProps {
 
 export function StatCard({ label, value, icon: Icon, accentClassName, hint }: StatCardProps) {
   return (
-    <Card className="transition-shadow hover:shadow-sm">
-      <CardContent className="flex items-center gap-4 py-1">
+    <Card className="group gap-0 border-border/60 py-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md">
+      <CardContent className="flex items-center gap-4 p-4">
         <div
           className={cn(
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary",
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105",
             accentClassName
           )}
         >
           <Icon className="h-5 w-5" />
         </div>
-        <div className="flex flex-col">
-          <span className="text-2xl font-semibold tabular-nums">{value}</span>
-          <span className="text-xs text-muted-foreground">{label}</span>
+        <div className="flex min-w-0 flex-col">
+          <span className="text-2xl font-bold tracking-tight tabular-nums">{value}</span>
+          <span className="truncate text-xs font-medium text-muted-foreground">{label}</span>
           {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
         </div>
       </CardContent>

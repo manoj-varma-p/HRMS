@@ -1,4 +1,4 @@
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, apiUpload } from "@/lib/api-client";
 import { API_ENDPOINTS } from "@/constants/api-endpoints";
 import {
   Configuration,
@@ -25,6 +25,16 @@ function patch(url: string, body: unknown): Promise<Configuration> {
 
 export function updateCompanyProfile(input: Partial<CompanyProfile>) {
   return patch(API_ENDPOINTS.CONFIGURATION.COMPANY_PROFILE, input);
+}
+
+export function uploadCompanyLogo(file: File, onProgress?: (percent: number) => void) {
+  const formData = new FormData();
+  formData.append("logo", file);
+  return apiUpload<ApiSuccess<{ configuration: Configuration }>>(
+    API_ENDPOINTS.CONFIGURATION.LOGO,
+    formData,
+    onProgress
+  ).then((res) => res.data.configuration);
 }
 
 export function updateOfficeSettings(input: Partial<OfficeSettings>) {

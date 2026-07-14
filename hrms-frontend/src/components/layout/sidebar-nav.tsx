@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   CalendarCheck,
   CalendarDays,
+  ClipboardList,
   Users,
   Megaphone,
   FileBarChart,
@@ -21,6 +22,7 @@ const navItems = [
   { label: "Dashboard", href: ROUTES.DASHBOARD, icon: LayoutDashboard },
   { label: "Attendance", href: ROUTES.ATTENDANCE, icon: CalendarCheck },
   { label: "Leave", href: ROUTES.LEAVE, icon: CalendarDays },
+  { label: "Tasks", href: ROUTES.TASKS, icon: ClipboardList },
   {
     label: "Employees",
     href: ROUTES.EMPLOYEES,

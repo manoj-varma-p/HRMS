@@ -49,12 +49,12 @@ function LeavePolicyForm({ config }: { config: Configuration }) {
         <div className="grid gap-4 sm:grid-cols-2">
           <NumberInput
             id="sick-quota"
-            label="Sick Leave Quota"
-            suffix="days / year"
-            value={draft.sickQuota}
+            label="Sick Leave Quota (per half-year)"
+            suffix="days / half"
+            value={draft.sickQuotaPerHalf}
             min={0}
-            max={365}
-            onChange={(sickQuota) => setDraft({ ...draft, sickQuota })}
+            max={180}
+            onChange={(sickQuotaPerHalf) => setDraft({ ...draft, sickQuotaPerHalf })}
           />
           <NumberInput
             id="casual-quota"
@@ -104,7 +104,7 @@ function LeavePolicyForm({ config }: { config: Configuration }) {
         <ToggleRow
           id="carry-forward"
           label="Carry Forward Unused Leave"
-          description="When on, Casual Leave days left unused in Jan–Jun carry into the Jul–Dec half. They don't carry further than that, and unused Annual/Sick days never carry into the next year."
+          description="When on, Sick and Casual Leave days left unused in Jan–Jun carry into the Jul–Dec half. They don't carry further than that, and unused Annual Leave days never carry into the next year."
           checked={draft.carryForwardEnabled}
           onCheckedChange={(carryForwardEnabled) => setDraft({ ...draft, carryForwardEnabled })}
         />

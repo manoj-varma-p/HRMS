@@ -1,23 +1,12 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import * as employeeService from "@/services/employee.service";
+import { useEmployeeOptions } from "@/hooks/use-employee-options";
 
 const ALL = "ALL";
 
 function toFilterValue(v: string | null): string | undefined {
   return v && v !== ALL ? v : undefined;
-}
-
-function useEmployeeOptions() {
-  return useQuery({
-    queryKey: ["employees-for-filter"],
-    queryFn: () =>
-      employeeService
-        .listEmployees({ limit: 100, sortBy: "fullName", sortOrder: "asc" })
-        .then((res) => res.data.employees),
-  });
 }
 
 export function EmployeeFilter({

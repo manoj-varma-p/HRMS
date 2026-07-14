@@ -11,15 +11,16 @@ import {
   LeaveType,
 } from "../../shared/constants/leaveTypes";
 import { EMPLOYEE_STATUS } from "../../shared/constants/employeeStatus";
+import { EMPLOYMENT_TYPE, EmploymentType } from "../../shared/constants/employmentType";
 import { toId } from "../../shared/utils/toId";
 import { getISTDateString, daysBetweenDateStrings } from "../../shared/utils/istDate";
 import { resolveViewableEmployeeId } from "../../shared/utils/resolveViewableEmployeeId";
 import { recordActivity } from "../activity-log/activity-log.service";
 import { notifyAdmins, notifyUser } from "../notifications/notifications.service";
 import { UserModel } from "../user/user.model";
-import { LeaveBalanceModel } from "./leave-balance.model";
+import { ILeaveBalance, LeaveBalanceModel } from "./leave-balance.model";
 import { ILeaveRequest, LeaveRequestModel } from "./leave-request.model";
-import { computeLeaveWorkingDays, getAnnualLeaveAccrued } from "./leave.util";
+import { computeLeaveWorkingDays, countEligibleAccrualMonths } from "./leave.util";
 
 interface Actor {
   id: string;
@@ -39,8 +40,11 @@ const APPLY_ALLOWED_STATUSES: string[] = [
   EMPLOYEE_STATUS.NOTICE_PERIOD,
 ];
 
-/** Jan-Jun = H1, Jul-Dec = H2, based on the leave request's own start date. */
-function casualLeaveHalf(dateStr: string): "H1" | "H2" {
+/**
+ * Jan-Jun = H1, Jul-Dec = H2, based on the leave request's own start date.
+ * Shared by both Sick and Casual Paid Leave, the two half-year-split types.
+ */
+function leaveHalf(dateStr: string): "H1" | "H2" {
   return Number(dateStr.slice(5, 7)) <= 6 ? "H1" : "H2";
 }
 
@@ -89,49 +93,92 @@ export async function getApprovedLeaveDateSet(
   return dates;
 }
 
+// Shared by Sick and Casual Paid Leave — both are split into two half-year
+// buckets, with H2's quota including whatever H1 left unused (when
+// carry-forward is on). H1 is always fully closed out by the time H2
+// starts, so this is never computed against an in-progress half.
+function computeHalfYearBuckets(
+  quotaPerHalf: number,
+  usedH1: number,
+  usedH2: number,
+  carryForwardEnabled: boolean
+) {
+  const h1Total = quotaPerHalf;
+  const h1Remaining = h1Total - usedH1;
+  const h2Total = quotaPerHalf + (carryForwardEnabled ? Math.max(0, h1Remaining) : 0);
+  const h2Remaining = h2Total - usedH2;
+
+  return {
+    half1: { used: usedH1, total: h1Total, remaining: h1Remaining },
+    half2: { used: usedH2, total: h2Total, remaining: h2Remaining },
+  };
+}
+
+// Annual Leave is credited flat +accrualPerMonth for every fully-completed
+// calendar month the employee has been Permanent — no "zero leave taken"
+// condition like Sick/Casual's quotas have, and Probation employees don't
+// accrue at all. Mutates `balance` in place (annualAccrued/
+// annualAccruedThroughMonth only) when new months have become eligible
+// since it was last credited; never saves — callers already save balance
+// for their own reasons.
+function creditAnnualAccrual(
+  balance: ILeaveBalance,
+  employmentType: EmploymentType,
+  permanentSince: Date | null,
+  year: number,
+  accrualPerMonth: number
+): void {
+  if (employmentType !== EMPLOYMENT_TYPE.PERMANENT) return;
+
+  const eligibleMonths = countEligibleAccrualMonths(permanentSince, year, getISTDateString());
+  if (eligibleMonths <= balance.annualAccruedThroughMonth) return;
+
+  const newMonths = eligibleMonths - balance.annualAccruedThroughMonth;
+  balance.annualAccrued = Math.round((balance.annualAccrued + newMonths * accrualPerMonth) * 100) / 100;
+  balance.annualAccruedThroughMonth = eligibleMonths;
+}
+
 export async function getLeaveBalance(employeeId: string, year: number) {
-  const employee = await UserModel.findById(employeeId).select("joiningDate");
+  const employee = await UserModel.findById(employeeId).select("employmentType permanentSince");
   if (!employee) throw new ApiError(404, "Employee not found");
 
-  const balance = await LeaveBalanceModel.findOne({ employee: employeeId, year });
-  const sickUsed = balance?.sickUsed ?? 0;
-  const casualPaidUsedH1 = balance?.casualPaidUsedH1 ?? 0;
-  const casualPaidUsedH2 = balance?.casualPaidUsedH2 ?? 0;
-  const annualUsed = balance?.annualUsed ?? 0;
-  const unpaidUsed = balance?.unpaidUsed ?? 0;
+  let balance = await LeaveBalanceModel.findOne({ employee: employeeId, year });
+  if (!balance) {
+    balance = new LeaveBalanceModel({ employee: employeeId, year });
+  }
 
   const policy = getLeavePolicy();
-  const sickQuota = policy.sickQuota;
-
-  // H2's quota includes whatever H1 left unused (if carry-forward is on) —
-  // H1 is always fully closed out by the time H2 starts, so this is never
-  // computed against an in-progress half.
-  const h1Total = policy.casualPaidQuotaPerHalf;
-  const h1Remaining = h1Total - casualPaidUsedH1;
-  const h2Total = policy.casualPaidQuotaPerHalf + (policy.carryForwardEnabled ? Math.max(0, h1Remaining) : 0);
-  const h2Remaining = h2Total - casualPaidUsedH2;
-
-  const annualAccrued = await getAnnualLeaveAccrued(
-    employeeId,
-    employee.joiningDate,
+  creditAnnualAccrual(
+    balance,
+    employee.employmentType,
+    employee.permanentSince,
     year,
-    getISTDateString(),
     policy.annualAccrualPerMonth
   );
+  if (balance.isNew || balance.isModified()) {
+    await balance.save();
+  }
 
   return {
     year,
-    sick: { used: sickUsed, total: sickQuota, remaining: sickQuota - sickUsed },
-    casualPaid: {
-      half1: { used: casualPaidUsedH1, total: h1Total, remaining: h1Remaining },
-      half2: { used: casualPaidUsedH2, total: h2Total, remaining: h2Remaining },
-    },
+    sick: computeHalfYearBuckets(
+      policy.sickQuotaPerHalf,
+      balance.sickUsedH1,
+      balance.sickUsedH2,
+      policy.carryForwardEnabled
+    ),
+    casualPaid: computeHalfYearBuckets(
+      policy.casualPaidQuotaPerHalf,
+      balance.casualPaidUsedH1,
+      balance.casualPaidUsedH2,
+      policy.carryForwardEnabled
+    ),
     annual: {
-      used: annualUsed,
-      accrued: annualAccrued,
-      remaining: Math.round((annualAccrued - annualUsed) * 100) / 100,
+      used: balance.annualUsed,
+      accrued: balance.annualAccrued,
+      remaining: Math.round((balance.annualAccrued - balance.annualUsed) * 100) / 100,
     },
-    unpaid: { used: unpaidUsed, total: null, remaining: null },
+    unpaid: { used: balance.unpaidUsed, total: null, remaining: null },
   };
 }
 
@@ -209,11 +256,12 @@ export async function applyLeave(actor: Actor, input: ApplyLeaveInput) {
   if (input.leaveType !== LEAVE_TYPES.UNPAID) {
     const year = Number(input.startDate.slice(0, 4));
     const balance = await getLeaveBalance(actor.id, year);
+    const half = leaveHalf(input.startDate) === "H1" ? "half1" : "half2";
     const relevant =
       input.leaveType === LEAVE_TYPES.SICK
-        ? balance.sick
+        ? balance.sick[half]
         : input.leaveType === LEAVE_TYPES.CASUAL_PAID
-          ? balance.casualPaid[casualLeaveHalf(input.startDate) === "H1" ? "half1" : "half2"]
+          ? balance.casualPaid[half]
           : balance.annual;
     if (relevant.remaining !== null && days > relevant.remaining) {
       throw new ApiError(
@@ -396,15 +444,28 @@ export async function approveLeave(actor: Actor, leaveId: string, comment?: stri
         balance = new LeaveBalanceModel({ employee: leave.employee, year });
       }
 
-      let field: "sickUsed" | "casualPaidUsedH1" | "casualPaidUsedH2" | "annualUsed" | "unpaidUsed";
+      let field:
+        | "sickUsedH1"
+        | "sickUsedH2"
+        | "casualPaidUsedH1"
+        | "casualPaidUsedH2"
+        | "annualUsed"
+        | "unpaidUsed";
       // null means "unlimited, no capacity check" (Unpaid Leave only).
       let quota: number | null = null;
 
       if (leave.leaveType === LEAVE_TYPES.SICK) {
-        field = "sickUsed";
-        quota = policy.sickQuota;
+        if (leaveHalf(leave.startDate) === "H1") {
+          field = "sickUsedH1";
+          quota = policy.sickQuotaPerHalf;
+        } else {
+          field = "sickUsedH2";
+          const h1Remaining = policy.sickQuotaPerHalf - balance.sickUsedH1;
+          quota =
+            policy.sickQuotaPerHalf + (policy.carryForwardEnabled ? Math.max(0, h1Remaining) : 0);
+        }
       } else if (leave.leaveType === LEAVE_TYPES.CASUAL_PAID) {
-        if (casualLeaveHalf(leave.startDate) === "H1") {
+        if (leaveHalf(leave.startDate) === "H1") {
           field = "casualPaidUsedH1";
           quota = policy.casualPaidQuotaPerHalf;
         } else {
@@ -417,17 +478,18 @@ export async function approveLeave(actor: Actor, leaveId: string, comment?: stri
       } else if (leave.leaveType === LEAVE_TYPES.ANNUAL) {
         field = "annualUsed";
         const employee = await UserModel.findById(leave.employee)
-          .select("joiningDate")
+          .select("employmentType permanentSince")
           .session(session);
-        quota = employee
-          ? await getAnnualLeaveAccrued(
-              String(leave.employee),
-              employee.joiningDate,
-              year,
-              getISTDateString(),
-              policy.annualAccrualPerMonth
-            )
-          : 0;
+        if (employee) {
+          creditAnnualAccrual(
+            balance,
+            employee.employmentType,
+            employee.permanentSince,
+            year,
+            policy.annualAccrualPerMonth
+          );
+        }
+        quota = balance.annualAccrued;
       } else {
         field = "unpaidUsed";
       }

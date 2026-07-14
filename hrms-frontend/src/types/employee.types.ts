@@ -1,5 +1,6 @@
 import { Role } from "@/constants/roles";
 import { EmployeeStatus } from "@/constants/employee-status";
+import { EmploymentType } from "@/constants/employment-type";
 
 export interface ReferenceData {
   _id: string;
@@ -29,6 +30,8 @@ export interface Employee {
   address: string | null;
   emergencyContact: EmergencyContact | null;
   gracePeriodOverrideMinutes: number | null;
+  employmentType: EmploymentType;
+  permanentSince: string | null;
   createdAt: string;
 }
 

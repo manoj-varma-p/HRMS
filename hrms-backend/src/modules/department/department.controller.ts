@@ -43,4 +43,13 @@ async function deactivate(req: Request, res: Response): Promise<void> {
   sendSuccess(res, { department }, "Department deactivated");
 }
 
-export { list, create, update, activate, deactivate };
+async function setHead(req: Request, res: Response): Promise<void> {
+  const department = await departmentService.setDepartmentHead(
+    req.user!,
+    String(req.params.id),
+    req.body.headEmployeeId
+  );
+  sendSuccess(res, { department }, "Department head updated");
+}
+
+export { list, create, update, activate, deactivate, setHead };

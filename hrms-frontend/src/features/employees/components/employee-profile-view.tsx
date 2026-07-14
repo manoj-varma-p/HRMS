@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Employee } from "@/types/employee.types";
 import { EmployeeStatusBadge } from "./employee-status-badge";
+import { DocumentsPanel } from "@/features/documents/components/documents-panel";
 
 const ROLE_LABELS: Record<string, string> = {
   EMPLOYEE: "Employee",
@@ -53,6 +54,9 @@ export function EmployeeProfileView({
               <h2 className="text-lg font-semibold">{employee.fullName}</h2>
               <EmployeeStatusBadge status={employee.status} />
               <Badge variant="secondary">{ROLE_LABELS[employee.role]}</Badge>
+              <Badge variant={employee.employmentType === "PERMANENT" ? "default" : "outline"}>
+                {employee.employmentType === "PERMANENT" ? "Permanent" : "Probation"}
+              </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
               {employee.employeeId} · {employee.email}
@@ -79,6 +83,18 @@ export function EmployeeProfileView({
             })}
           />
           <Field label="Role" value={ROLE_LABELS[employee.role]} />
+          <Field
+            label="Employment Type"
+            value={
+              employee.employmentType === "PERMANENT"
+                ? `Permanent since ${new Date(employee.permanentSince!).toLocaleDateString(undefined, {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}`
+                : "Probation"
+            }
+          />
         </CardContent>
       </Card>
 
@@ -138,6 +154,8 @@ export function EmployeeProfileView({
           </CardContent>
         </Card>
       </div>
+
+      <DocumentsPanel employeeId={employee.id} />
     </div>
   );
 }

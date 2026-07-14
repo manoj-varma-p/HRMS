@@ -77,4 +77,31 @@ async function me(req: Request, res: Response): Promise<void> {
   sendSuccess(res, { user });
 }
 
-export { login, refresh, logout, setPassword, adminResetPassword, me };
+async function forgotPassword(req: Request, res: Response): Promise<void> {
+  await authService.forgotPassword(req.body.email);
+  // Identical response whether or not the email is registered — a
+  // different message either way would let this endpoint be used to
+  // enumerate valid accounts.
+  sendSuccess(
+    res,
+    null,
+    "If an account exists for that email, we've sent password reset instructions to it."
+  );
+}
+
+async function resetPassword(req: Request, res: Response): Promise<void> {
+  const { token, newPassword } = req.body;
+  await authService.resetPassword(token, newPassword);
+  sendSuccess(res, null, "Password reset — you can now sign in");
+}
+
+export {
+  login,
+  refresh,
+  logout,
+  setPassword,
+  adminResetPassword,
+  forgotPassword,
+  resetPassword,
+  me,
+};

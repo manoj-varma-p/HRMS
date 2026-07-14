@@ -11,9 +11,9 @@ export interface QuickAction {
 
 export function QuickActions({ actions }: { actions: QuickAction[] }) {
   return (
-    <Card>
+    <Card className="border-border/60">
       <CardHeader>
-        <CardTitle className="text-base">Quick Actions</CardTitle>
+        <CardTitle className="text-base font-semibold">Quick Actions</CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {actions.map((action) => (

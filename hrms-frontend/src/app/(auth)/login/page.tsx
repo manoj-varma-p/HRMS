@@ -3,13 +3,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
 import { LoginForm } from "@/features/auth/components/login-form";
 import { useAuth } from "@/hooks/use-auth";
 import { ROUTES } from "@/constants/routes";
@@ -33,16 +26,14 @@ export default function LoginPage() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Sign in to HRMS</CardTitle>
-        <CardDescription>
+    <>
+      <div className="flex flex-col gap-2">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">Sign in to HRMS</h2>
+        <p className="text-sm text-muted-foreground">
           Use the credentials provided by your administrator.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <LoginForm />
-      </CardContent>
-    </Card>
+        </p>
+      </div>
+      <LoginForm />
+    </>
   );
 }

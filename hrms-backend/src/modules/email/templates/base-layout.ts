@@ -1,3 +1,4 @@
+import { env } from "../../../shared/config/env";
 import { ICompanyProfile } from "../../configuration/configuration.model";
 
 export interface RenderedEmail {
@@ -24,8 +25,15 @@ export function escapeHtml(text: string): string {
  */
 export function renderLayout(bodyHtml: string, companyProfile: ICompanyProfile): string {
   const name = escapeHtml(companyProfile.name);
-  const logo = companyProfile.logoUrl
-    ? `<img src="${escapeHtml(companyProfile.logoUrl)}" alt="${name}" height="32" style="display:block;" />`
+  // Stored as a relative, backend-proxied path (e.g. "/public/company-logo")
+  // — fine for the frontend, which resolves it against its own API base,
+  // but an email client has no such context, so it must be made absolute
+  // here or the image silently fails to load in every inbox.
+  const logoSrc = companyProfile.logoUrl
+    ? `${env.apiBaseUrl}/api/${env.apiVersion}${companyProfile.logoUrl}`
+    : null;
+  const logo = logoSrc
+    ? `<img src="${escapeHtml(logoSrc)}" alt="${name}" height="32" style="display:block;" />`
     : `<span style="font-size:20px;font-weight:700;color:#111827;">${name}</span>`;
   const footerLinks = [
     companyProfile.email ? `<a href="mailto:${escapeHtml(companyProfile.email)}" style="color:#6b7280;text-decoration:underline;">${escapeHtml(companyProfile.email)}</a>` : null,

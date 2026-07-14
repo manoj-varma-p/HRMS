@@ -8,6 +8,9 @@ export interface PublicUser {
   role: Role;
   status: EmployeeStatus;
   mustChangePassword: boolean;
+  // Departments this user heads (see Department.headEmployeeId) — [] for
+  // everyone else. Not a role; an EMPLOYEE or ADMIN can head a department.
+  departmentHeadOf: { id: string; name: string }[];
 }
 
 export interface AuthTokens {

@@ -15,10 +15,14 @@ import notificationsRoutes from "./notifications/notifications.routes";
 import announcementsRoutes from "./announcements/announcements.routes";
 import activityLogRoutes from "./activity-log/activity-log.routes";
 import configurationRoutes from "./configuration/configuration.routes";
+import publicRoutes from "./public/public.routes";
+import documentRoutes from "./documents/document.routes";
+import taskRoutes from "./task/task.routes";
 
 const router = Router();
 
 router.use("/health", healthRoutes);
+router.use("/public", publicRoutes);
 router.use("/auth", authRoutes);
 router.use("/employees", employeeRoutes);
 router.use("/departments", departmentRoutes);
@@ -34,5 +38,7 @@ router.use("/notifications", notificationsRoutes);
 router.use("/announcements", announcementsRoutes);
 router.use("/activity", activityLogRoutes);
 router.use("/configuration", configurationRoutes);
+router.use(documentRoutes);
+router.use(taskRoutes);
 
 export default router;

@@ -53,10 +53,16 @@ export function LeaveBalanceCard({ employeeId }: LeaveBalanceCardProps) {
         ) : (
           <>
             <BalanceRow
-              label="Sick Leave"
-              used={data?.sick.used ?? 0}
-              total={data?.sick.total ?? null}
+              label="Sick Leave (Jan–Jun)"
+              used={data?.sick.half1.used ?? 0}
+              total={data?.sick.half1.total ?? null}
               colorClass="bg-blue-500"
+            />
+            <BalanceRow
+              label="Sick Leave (Jul–Dec)"
+              used={data?.sick.half2.used ?? 0}
+              total={data?.sick.half2.total ?? null}
+              colorClass="bg-blue-600"
             />
             <BalanceRow
               label="Casual Leave (Jan–Jun)"

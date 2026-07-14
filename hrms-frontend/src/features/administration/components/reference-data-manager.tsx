@@ -43,6 +43,14 @@ interface ReferenceDataManagerProps {
   itemLabel: string;
   queryKey: string;
   service: ReferenceDataService;
+  // Optional extra column, rendered after Status and before Actions.
+  // Undefined (every consumer except Departments today) renders this
+  // table exactly as before — Designation's page doesn't pass this prop,
+  // so its behavior is unchanged.
+  extraColumn?: {
+    header: string;
+    render: (item: ReferenceData) => React.ReactNode;
+  };
 }
 
 export function ReferenceDataManager({
@@ -51,6 +59,7 @@ export function ReferenceDataManager({
   itemLabel,
   queryKey,
   service,
+  extraColumn,
 }: ReferenceDataManagerProps) {
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
@@ -146,6 +155,7 @@ export function ReferenceDataManager({
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Status</TableHead>
+              {extraColumn && <TableHead>{extraColumn.header}</TableHead>}
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -153,7 +163,7 @@ export function ReferenceDataManager({
             {isLoading &&
               Array.from({ length: 3 }).map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell colSpan={3}>
+                  <TableCell colSpan={extraColumn ? 4 : 3}>
                     <Skeleton className="h-5 w-full" />
                   </TableCell>
                 </TableRow>
@@ -161,7 +171,10 @@ export function ReferenceDataManager({
 
             {!isLoading && data?.length === 0 && (
               <TableRow>
-                <TableCell colSpan={3} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={extraColumn ? 4 : 3}
+                  className="h-24 text-center text-sm text-muted-foreground"
+                >
                   No {itemLabel.toLowerCase()}s yet.
                 </TableCell>
               </TableRow>
@@ -183,6 +196,7 @@ export function ReferenceDataManager({
                       {item.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
+                  {extraColumn && <TableCell>{extraColumn.render(item)}</TableCell>}
                   <TableCell className="flex justify-end gap-1">
                     <Button
                       variant="ghost"

@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import * as dashboardService from "@/services/dashboard.service";
-import { RecentNotificationsWidget } from "@/features/notifications/components/recent-notifications-widget";
 import { STATUS_CHART_COLORS } from "./chart-colors";
 import { WelcomeHeader } from "./components/welcome-header";
 import { StatCard } from "./components/stat-card";
@@ -28,7 +27,6 @@ import { PendingApprovals } from "./components/pending-approvals";
 import { QuickActions } from "./components/quick-actions";
 import { TrendAreaChart } from "./components/charts/trend-area-chart";
 import { TrendBarChart } from "./components/charts/trend-bar-chart";
-import { CategoryBarChart } from "./components/charts/category-bar-chart";
 import { DistributionPieChart } from "./components/charts/distribution-pie-chart";
 import { StatusBarChart } from "./components/charts/status-bar-chart";
 import { LEAVE_TYPE_LABELS } from "@/features/leave/leave-status-meta";
@@ -98,21 +96,44 @@ export function AdminDashboard() {
             label="Active Employees"
             value={data?.kpis.activeEmployees ?? "—"}
             icon={UserCheck}
+            accentClassName="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
           />
-          <StatCard label="Checked In Today" value={data?.kpis.checkedInToday ?? "—"} icon={LogIn} />
+          <StatCard
+            label="Checked In Today"
+            value={data?.kpis.checkedInToday ?? "—"}
+            icon={LogIn}
+            accentClassName="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+          />
           <StatCard
             label="Not Checked In"
             value={data?.kpis.notCheckedInToday ?? "—"}
             icon={LogOut}
+            accentClassName="bg-rose-500/10 text-rose-600 dark:text-rose-400"
           />
-          <StatCard label="Late Today" value={data?.kpis.lateToday ?? "—"} icon={CalendarClock} />
-          <StatCard label="On Leave Today" value={data?.kpis.onLeaveToday ?? "—"} icon={CalendarHeart} />
+          <StatCard
+            label="Late Today"
+            value={data?.kpis.lateToday ?? "—"}
+            icon={CalendarClock}
+            accentClassName="bg-amber-500/10 text-amber-600 dark:text-amber-400"
+          />
+          <StatCard
+            label="On Leave Today"
+            value={data?.kpis.onLeaveToday ?? "—"}
+            icon={CalendarHeart}
+            accentClassName="bg-blue-500/10 text-blue-600 dark:text-blue-400"
+          />
           <StatCard
             label="Pending Leave Requests"
             value={data?.kpis.pendingLeaveRequests ?? "—"}
             icon={ClipboardList}
+            accentClassName="bg-amber-500/10 text-amber-600 dark:text-amber-400"
           />
-          <StatCard label="Present Today" value={data?.kpis.presentToday ?? "—"} icon={UsersRound} />
+          <StatCard
+            label="Present Today"
+            value={data?.kpis.presentToday ?? "—"}
+            icon={UsersRound}
+            accentClassName="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+          />
         </div>
       </DashboardSection>
 
@@ -181,25 +202,6 @@ export function AdminDashboard() {
         </div>
       </DashboardSection>
 
-      <DashboardSection title="Department & Designation">
-        <div className="grid gap-4 lg:grid-cols-2">
-          <ChartCard
-            title="Employees by Department"
-            isLoading={isLoading}
-            isEmpty={(data?.departmentBreakdown.length ?? 0) === 0}
-          >
-            <CategoryBarChart data={data?.departmentBreakdown ?? []} />
-          </ChartCard>
-          <ChartCard
-            title="Employees by Designation"
-            isLoading={isLoading}
-            isEmpty={(data?.designationBreakdown.length ?? 0) === 0}
-          >
-            <CategoryBarChart data={data?.designationBreakdown ?? []} />
-          </ChartCard>
-        </div>
-      </DashboardSection>
-
       <DashboardSection title="Employee Status">
         <ChartCard title="Status Breakdown" isLoading={isLoading}>
           <DistributionPieChart
@@ -214,10 +216,7 @@ export function AdminDashboard() {
         </ChartCard>
       </DashboardSection>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <PendingApprovals />
-        <RecentNotificationsWidget />
-      </div>
+      <PendingApprovals />
 
       <ActivityTimeline activities={data?.recentActivity} isLoading={isLoading} />
 

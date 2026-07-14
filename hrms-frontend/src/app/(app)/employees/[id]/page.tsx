@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Pencil, Power, PowerOff, Trash2 } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Pencil, Power, PowerOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -38,6 +38,7 @@ function EmployeeDetailContent() {
   const [editOpen, setEditOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [promoteConfirmOpen, setPromoteConfirmOpen] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["employee", params.id],
@@ -58,6 +59,20 @@ function EmployeeDetailContent() {
     onError: (err: Error) => {
       toast.error(err.message);
       setConfirmOpen(false);
+    },
+  });
+
+  const promoteMutation = useMutation({
+    mutationFn: () => employeeService.promoteToPermanent(params.id),
+    onSuccess: () => {
+      toast.success(`${data?.fullName} is now a Permanent employee`);
+      queryClient.invalidateQueries({ queryKey: ["employee", params.id] });
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      setPromoteConfirmOpen(false);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message);
+      setPromoteConfirmOpen(false);
     },
   });
 
@@ -116,6 +131,12 @@ function EmployeeDetailContent() {
             <Pencil className="h-4 w-4" />
             Edit
           </Button>
+          {data.employmentType === "PROBATION" && (
+            <Button variant="outline" onClick={() => setPromoteConfirmOpen(true)}>
+              <BadgeCheck className="h-4 w-4" />
+              Mark as Permanent
+            </Button>
+          )}
           {data.status === "ACTIVE" ? (
             <Button variant="destructive" onClick={() => setConfirmOpen(true)}>
               <PowerOff className="h-4 w-4" />
@@ -173,6 +194,16 @@ function EmployeeDetailContent() {
         destructive={data.status === "ACTIVE"}
         isLoading={toggleActiveMutation.isPending}
         onConfirm={() => toggleActiveMutation.mutate()}
+      />
+
+      <ConfirmDialog
+        open={promoteConfirmOpen}
+        onOpenChange={setPromoteConfirmOpen}
+        title="Mark as Permanent employee?"
+        description={`${data.fullName} will be marked as a Permanent employee and start accruing Annual Leave from today. This can't be undone.`}
+        confirmLabel="Mark as Permanent"
+        isLoading={promoteMutation.isPending}
+        onConfirm={() => promoteMutation.mutate()}
       />
 
       <ConfirmDialog

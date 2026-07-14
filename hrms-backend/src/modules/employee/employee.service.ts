@@ -7,6 +7,7 @@ import {
   EmployeeStatus,
   LOGIN_ALLOWED_STATUSES,
 } from "../../shared/constants/employeeStatus";
+import { EMPLOYMENT_TYPE } from "../../shared/constants/employmentType";
 import { ACTIVITY_ACTIONS } from "../../shared/constants/activityActions";
 import { NOTIFICATION_TYPES } from "../../shared/constants/notificationTypes";
 import { generateTempPassword, hashSecret } from "../../shared/utils/password";
@@ -23,6 +24,7 @@ import { AttendanceModel } from "../attendance/attendance.model";
 import { AttendanceCorrectionModel } from "../attendance-correction/attendance-correction.model";
 import { LeaveRequestModel } from "../leave/leave-request.model";
 import { LeaveBalanceModel } from "../leave/leave-balance.model";
+import { purgeAllDocumentsForEmployee } from "../documents/document.service";
 
 const EMPLOYEE_ID_PREFIX = "EMP-";
 const EMPLOYEE_ID_PAD = 4;
@@ -64,6 +66,8 @@ function toPublicEmployee(user: IUser) {
     address: user.address,
     emergencyContact: user.emergencyContact,
     gracePeriodOverrideMinutes: user.gracePeriodOverrideMinutes,
+    employmentType: user.employmentType,
+    permanentSince: user.permanentSince,
     createdAt: user.createdAt,
   };
 }
@@ -371,6 +375,42 @@ export async function setEmployeeActive(actor: Actor, id: string, isActive: bool
   });
 }
 
+// One-way: Probation -> Permanent only, no revert action. permanentSince
+// is the reference point Annual Leave accrual counts eligible months from
+// (see leave.service.ts's creditAnnualAccrual) — Probation employees don't
+// accrue at all, so this is also the moment accrual starts for them.
+export async function promoteToPermanent(actor: Actor, id: string) {
+  const user = await UserModel.findById(id);
+  if (!user) {
+    throw new ApiError(404, "Employee not found");
+  }
+  if (user.employmentType === EMPLOYMENT_TYPE.PERMANENT) {
+    throw new ApiError(409, "This employee is already Permanent");
+  }
+
+  user.employmentType = EMPLOYMENT_TYPE.PERMANENT;
+  user.permanentSince = new Date();
+  await user.save();
+  await user.populate(POPULATE_FIELDS);
+
+  await recordActivity({
+    actor,
+    action: ACTIVITY_ACTIONS.EMPLOYEE_UPDATED,
+    targetType: "User",
+    targetId: toId(user),
+    metadata: { employmentType: EMPLOYMENT_TYPE.PERMANENT },
+  });
+
+  await notifyAdmins(actor.id, {
+    type: NOTIFICATION_TYPES.EMPLOYEE_UPDATED,
+    title: "Employee marked Permanent",
+    message: `${user.fullName} (${user.employeeId}) was marked as a Permanent employee`,
+    metadata: { employeeId: toId(user) },
+  });
+
+  return toPublicEmployee(user);
+}
+
 // Unconditional hard delete — removes the employee and cascades to every
 // record that belongs to them (attendance, leave requests, leave balances,
 // attendance corrections), so nothing is left pointing at a deleted user.
@@ -416,6 +456,12 @@ export async function deleteEmployee(actor: Actor, id: string): Promise<void> {
   } finally {
     await session.endSession();
   }
+
+  // S3 isn't part of the Mongo transaction above — this runs after it
+  // commits, same best-effort spirit as deleteObject itself (a stray S3
+  // object left behind is a minor cleanup issue, not a reason to fail an
+  // otherwise-successful employee deletion).
+  await purgeAllDocumentsForEmployee(id);
 
   await recordActivity({
     actor,

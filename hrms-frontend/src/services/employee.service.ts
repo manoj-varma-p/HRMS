@@ -87,6 +87,13 @@ export function deactivateEmployee(id: string) {
   );
 }
 
+export function promoteToPermanent(id: string) {
+  return apiFetch<ApiSuccess<{ employee: Employee }>>(
+    API_ENDPOINTS.EMPLOYEES.PROMOTE_TO_PERMANENT(id),
+    { method: "PATCH" }
+  );
+}
+
 export function deleteEmployee(id: string) {
   return apiFetch<ApiSuccess<null>>(API_ENDPOINTS.EMPLOYEES.DETAIL(id), {
     method: "DELETE",

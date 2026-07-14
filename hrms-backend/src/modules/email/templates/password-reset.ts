@@ -1,11 +1,11 @@
 import { ICompanyProfile } from "../../configuration/configuration.model";
 import { escapeHtml, renderLayout, RenderedEmail } from "./base-layout";
-import { button, codeBox } from "./helpers";
+import { button } from "./helpers";
 
 export interface PasswordResetEmailData {
   fullName: string;
-  tempPassword: string;
-  loginUrl: string;
+  resetUrl: string;
+  expiresInMinutes: number;
 }
 
 export function passwordResetEmail(
@@ -14,13 +14,12 @@ export function passwordResetEmail(
 ): RenderedEmail {
   const body = `
     <p style="font-size:16px;font-weight:600;margin:0 0 12px;">Hi ${escapeHtml(data.fullName)},</p>
-    <p style="margin:0 0 12px;">An administrator reset your password. Use this temporary password to sign in:</p>
-    ${codeBox("Temporary password", data.tempPassword)}
-    <p style="margin:16px 0 0;">You'll be asked to set a new password the next time you sign in. If you didn't expect this, contact your administrator right away.</p>
-    ${button("Sign in", data.loginUrl)}
+    <p style="margin:0 0 12px;">Click the button below to set a new password. This link expires in ${data.expiresInMinutes} minutes and can only be used once.</p>
+    ${button("Set new password", data.resetUrl)}
+    <p style="margin:16px 0 0;">If you didn't request this, you can safely ignore this email — your password won't change.</p>
   `;
   return {
-    subject: "Your password has been reset",
+    subject: "Reset your password",
     html: renderLayout(body, companyProfile),
   };
 }

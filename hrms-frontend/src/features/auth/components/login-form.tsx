@@ -5,7 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Loader2, LogIn, Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +20,10 @@ const loginSchema = z.object({
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
+
+const fieldInputClass =
+  "h-10 rounded-xl border-border/70 pl-9 transition-all hover:border-border focus-visible:border-primary";
+const fieldLabelClass = "text-xs font-semibold tracking-wider text-muted-foreground uppercase";
 
 export function LoginForm() {
   const { login } = useAuth();
@@ -44,41 +49,69 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       {serverError && (
-        <Alert variant="destructive">
-          <AlertDescription>{serverError}</AlertDescription>
+        <Alert variant="destructive" className="px-3 py-2.5">
+          <AlertDescription className="text-xs">{serverError}</AlertDescription>
         </Alert>
       )}
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          disabled={isSubmitting}
-          {...register("email")}
-        />
-        {errors.email && (
-          <p className="text-sm text-destructive">{errors.email.message}</p>
-        )}
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="email" className={fieldLabelClass}>
+          Email Address
+        </Label>
+        <div className="relative flex items-center">
+          <Mail className="pointer-events-none absolute left-3 h-4 w-4 text-muted-foreground/70" />
+          <Input
+            id="email"
+            type="email"
+            placeholder="name@company.com"
+            autoComplete="email"
+            disabled={isSubmitting}
+            className={fieldInputClass}
+            {...register("email")}
+          />
+        </div>
+        {errors.email && <p className="mt-0.5 text-xs text-destructive">{errors.email.message}</p>}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          disabled={isSubmitting}
-          {...register("password")}
-        />
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password" className={fieldLabelClass}>
+            Password
+          </Label>
+          <Link
+            href={ROUTES.FORGOT_PASSWORD}
+            className="text-xs font-medium text-primary hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
+        <div className="relative flex items-center">
+          <Lock className="pointer-events-none absolute left-3 h-4 w-4 text-muted-foreground/70" />
+          <Input
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            autoComplete="current-password"
+            disabled={isSubmitting}
+            className={fieldInputClass}
+            {...register("password")}
+          />
+        </div>
         {errors.password && (
-          <p className="text-sm text-destructive">{errors.password.message}</p>
+          <p className="mt-0.5 text-xs text-destructive">{errors.password.message}</p>
         )}
       </div>
 
-      <Button type="submit" disabled={isSubmitting} className="mt-2">
-        {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+      <Button
+        type="submit"
+        disabled={isSubmitting}
+        className="mt-4 h-10 gap-2 rounded-xl font-semibold shadow-sm transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
+      >
+        {isSubmitting ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <LogIn className="h-4 w-4" />
+        )}
         Sign in
       </Button>
     </form>
