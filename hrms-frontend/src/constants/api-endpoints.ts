@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
     LIST: "/employees",
     CREATE: "/employees",
     ME: "/employees/me",
+    ASSIGNABLE: "/employees/assignable",
     DETAIL: (id: string) => `/employees/${id}`,
     ACTIVATE: (id: string) => `/employees/${id}/activate`,
     DEACTIVATE: (id: string) => `/employees/${id}/deactivate`,
@@ -128,9 +129,15 @@ export const API_ENDPOINTS = {
     REJECT: (documentId: string) => `/documents/${documentId}/reject`,
   },
   TASKS: {
+    LIST: "/tasks",
+    CREATE: "/tasks",
     MINE: "/tasks/me",
+    TEAM: "/tasks/team",
     DETAIL: (taskId: string) => `/tasks/${taskId}`,
+    UPDATE: (taskId: string) => `/tasks/${taskId}`,
+    CANCEL: (taskId: string) => `/tasks/${taskId}`,
     STATUS: (taskId: string) => `/tasks/${taskId}/status`,
+    REASSIGN: (taskId: string) => `/tasks/${taskId}/reassign`,
     COMMENTS: (taskId: string) => `/tasks/${taskId}/comments`,
     ATTACHMENTS: (taskId: string) => `/tasks/${taskId}/attachments`,
     ATTACHMENT_DOWNLOAD_URL: (attachmentId: string) =>

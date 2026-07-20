@@ -34,16 +34,94 @@ export function myTasks(params: MyTasksParams) {
   );
 }
 
+export interface TeamTasksParams {
+  page?: number;
+  limit?: number;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  assignedTo?: string;
+}
+
+export function teamTasks(params: TeamTasksParams) {
+  return apiFetch<ApiSuccess<{ tasks: Task[]; pagination: PaginationInfo }>>(
+    `${API_ENDPOINTS.TASKS.TEAM}${toQueryString({ ...params })}`
+  );
+}
+
+export interface AdminTasksParams {
+  page?: number;
+  limit?: number;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  department?: string;
+  assignedTo?: string;
+  assignedBy?: string;
+  overdue?: boolean;
+  search?: string;
+}
+
+export function adminTasks(params: AdminTasksParams) {
+  return apiFetch<ApiSuccess<{ tasks: Task[]; pagination: PaginationInfo }>>(
+    `${API_ENDPOINTS.TASKS.LIST}${toQueryString({ ...params })}`
+  );
+}
+
 export function getTask(taskId: string) {
   return apiFetch<ApiSuccess<{ task: Task }>>(API_ENDPOINTS.TASKS.DETAIL(taskId)).then(
     (res) => res.data.task
   );
 }
 
-export function changeTaskStatus(taskId: string, status: TaskStatus) {
+export interface CreateTaskInput {
+  title: string;
+  description?: string;
+  assignedTo: string;
+  priority?: TaskPriority;
+  dueDate?: string;
+  parentTask?: string;
+}
+
+export function createTask(input: CreateTaskInput) {
+  return apiFetch<ApiSuccess<{ task: Task }>>(API_ENDPOINTS.TASKS.CREATE, {
+    method: "POST",
+    body: JSON.stringify(input),
+  }).then((res) => res.data.task);
+}
+
+export interface UpdateTaskInput {
+  title?: string;
+  description?: string | null;
+  priority?: TaskPriority;
+  dueDate?: string | null;
+}
+
+export function updateTask(taskId: string, input: UpdateTaskInput) {
+  return apiFetch<ApiSuccess<{ task: Task }>>(API_ENDPOINTS.TASKS.UPDATE(taskId), {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  }).then((res) => res.data.task);
+}
+
+export function reassignTask(taskId: string, assignedTo: string) {
+  return apiFetch<ApiSuccess<{ task: Task }>>(API_ENDPOINTS.TASKS.REASSIGN(taskId), {
+    method: "PATCH",
+    body: JSON.stringify({ assignedTo }),
+  }).then((res) => res.data.task);
+}
+
+export function cancelTask(taskId: string) {
+  return apiFetch<ApiSuccess<{ task: Task }>>(API_ENDPOINTS.TASKS.CANCEL(taskId), {
+    method: "DELETE",
+  }).then((res) => res.data.task);
+}
+
+// `comment` is only meaningful for the IN_REVIEW -> IN_PROGRESS "request
+// changes" transition; the backend silently ignores it for every other
+// status change.
+export function changeTaskStatus(taskId: string, status: TaskStatus, comment?: string) {
   return apiFetch<ApiSuccess<{ task: Task }>>(API_ENDPOINTS.TASKS.STATUS(taskId), {
     method: "PATCH",
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, comment }),
   }).then((res) => res.data.task);
 }
 

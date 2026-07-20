@@ -3,12 +3,14 @@ import { ApiError } from "../../shared/errors/ApiError";
 import { ROLES, Role } from "../../shared/constants/roles";
 import { ACTIVITY_ACTIONS } from "../../shared/constants/activityActions";
 import { TASK_STATUS, TASK_PRIORITY, TaskStatus, TaskPriority } from "../../shared/constants/taskTypes";
+import { NOTIFICATION_TYPES } from "../../shared/constants/notificationTypes";
 import { CounterModel } from "../../shared/models/counter.model";
 import { toId } from "../../shared/utils/toId";
 import { escapeRegex } from "../../shared/utils/regex";
 import { getISTDateString } from "../../shared/utils/istDate";
 import { uploadObject, deleteObject, getSignedDownloadUrl } from "../../shared/services/s3.client";
 import { recordActivity } from "../activity-log/activity-log.service";
+import { notifyUser } from "../notifications/notifications.service";
 import { UserModel } from "../user/user.model";
 import { DepartmentModel } from "../department/department.model";
 import { ITask, TaskModel } from "./task.model";
@@ -21,6 +23,7 @@ import {
 import {
   canChangeTaskStatus,
   canViewTask,
+  isRequestChangesTransition,
   isTaskOverdue,
   isTaskReopenTransition,
   isValidTaskStatusTransition,
@@ -178,6 +181,7 @@ function toPublicTask(task: ITask, todayStr: string) {
     dueDate: task.dueDate,
     overdue: isTaskOverdue(task.dueDate, task.status, todayStr),
     completedAt: task.completedAt,
+    revisionCount: task.revisionCount,
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
   };
@@ -253,6 +257,14 @@ export async function createTask(actor: Actor, input: CreateTaskInput) {
     targetType: "Task",
     targetId: toId(task),
     metadata: { taskId: task.taskId, assignedTo: input.assignedTo, title: input.title },
+  });
+
+  await notifyUser({
+    user: input.assignedTo,
+    type: NOTIFICATION_TYPES.TASK_ASSIGNED,
+    title: "New task assigned",
+    message: `You've been assigned "${task.title}" (${task.taskId})`,
+    metadata: { taskId: toId(task) },
   });
 
   return toPublicTask(task, getISTDateString());
@@ -438,14 +450,27 @@ export async function updateTask(actor: Actor, taskId: string, input: UpdateTask
   return toPublicTask(task, getISTDateString());
 }
 
-export async function changeTaskStatus(actor: Actor, taskId: string, status: TaskStatus) {
+export async function changeTaskStatus(
+  actor: Actor,
+  taskId: string,
+  status: TaskStatus,
+  comment?: string
+) {
   const task = await assertTaskExists(taskId);
   await assertCanChangeStatus(actor, task, status);
 
   const previousStatus = task.status;
+  const isRequestingChanges = isRequestChangesTransition(previousStatus, status);
+  // Captured before .populate() below turns these into populated
+  // sub-documents — String(populatedDoc) would not give back a plain id.
+  const assignedById = String(task.assignedBy);
+  const departmentId = task.department ? String(task.department) : null;
   task.status = status;
   task.completedAt =
     status === TASK_STATUS.DONE ? new Date() : isTaskReopenTransition(previousStatus, status) ? null : task.completedAt;
+  if (isRequestingChanges) {
+    task.revisionCount += 1;
+  }
   await task.save();
   await task.populate(TASK_POPULATE_FIELDS);
 
@@ -456,6 +481,48 @@ export async function changeTaskStatus(actor: Actor, taskId: string, status: Tas
     targetId: toId(task),
     metadata: { taskId: task.taskId, from: previousStatus, to: status },
   });
+
+  // The comment lives in the task's own comment thread rather than a
+  // single "reviewComment" field on the task (unlike Leave/Documents,
+  // which are only ever reviewed once) — a task can be sent back for
+  // changes multiple times, so a single field would just get overwritten
+  // on the next round. The prefix is what makes it identifiable as review
+  // feedback rather than a regular reply, since TaskComment has no type
+  // tag of its own.
+  if (isRequestingChanges && comment?.trim()) {
+    await TaskCommentModel.create({
+      task: taskId,
+      author: actor.id,
+      body: `Requested changes: ${comment.trim()}`,
+    });
+  }
+
+  // A task landing in IN_REVIEW is the one moment nobody was otherwise
+  // told about — the assigner delegated it and the department head owns
+  // the team's output, so both (when they exist and aren't the actor who
+  // just submitted it) should hear about it without having to go check.
+  if (status === TASK_STATUS.IN_REVIEW) {
+    const recipientIds = new Set<string>();
+    if (assignedById !== actor.id) recipientIds.add(assignedById);
+
+    if (departmentId) {
+      const department = await DepartmentModel.findById(departmentId).select("headEmployeeId");
+      if (department?.headEmployeeId) {
+        const headId = String(department.headEmployeeId);
+        if (headId !== actor.id) recipientIds.add(headId);
+      }
+    }
+
+    for (const userId of recipientIds) {
+      await notifyUser({
+        user: userId,
+        type: NOTIFICATION_TYPES.TASK_SUBMITTED_FOR_REVIEW,
+        title: "Task submitted for review",
+        message: `"${task.title}" (${task.taskId}) is ready for your review`,
+        metadata: { taskId: toId(task) },
+      });
+    }
+  }
 
   return toPublicTask(task, getISTDateString());
 }
@@ -482,6 +549,14 @@ export async function reassignTask(actor: Actor, taskId: string, assignedTo: str
     targetType: "Task",
     targetId: toId(task),
     metadata: { taskId: task.taskId, from: previousAssignee, to: assignedTo },
+  });
+
+  await notifyUser({
+    user: assignedTo,
+    type: NOTIFICATION_TYPES.TASK_REASSIGNED,
+    title: "Task reassigned to you",
+    message: `"${task.title}" (${task.taskId}) has been reassigned to you`,
+    metadata: { taskId: toId(task) },
   });
 
   return toPublicTask(task, getISTDateString());

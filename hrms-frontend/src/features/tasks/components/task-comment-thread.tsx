@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatRelativeTime } from "@/lib/format-relative-time";
 import * as taskService from "@/services/task.service";
+import { TASK_POLL_INTERVAL_MS } from "../task-status-meta";
 import { TaskEmptyState } from "./task-empty-state";
 
 // A single fetch of the most recent comments, reversed to chronological
@@ -26,6 +27,7 @@ export function TaskCommentThread({ taskId }: { taskId: string }) {
     queryKey: ["task-comments", taskId],
     queryFn: () =>
       taskService.listComments(taskId, { limit: COMMENT_FETCH_LIMIT }).then((res) => res.data),
+    refetchInterval: TASK_POLL_INTERVAL_MS,
   });
 
   const addMutation = useMutation({

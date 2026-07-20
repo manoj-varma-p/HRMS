@@ -32,6 +32,11 @@ router.post(
   employeeController.create
 );
 
+// Literal path, must be registered before /:id or it would be swallowed
+// (Express matches route patterns in registration order — same reasoning
+// as task.routes.ts's /tasks/me and /tasks/team ordering).
+router.get("/assignable", employeeController.listAssignable);
+
 router.get(
   "/:id",
   validate(getEmployeeSchema),

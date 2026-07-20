@@ -86,6 +86,11 @@ async function updateMe(req: Request, res: Response): Promise<void> {
   sendSuccess(res, { employee }, "Profile updated");
 }
 
+async function listAssignable(req: Request, res: Response): Promise<void> {
+  const employees = await employeeService.listAssignableEmployees(req.user!);
+  sendSuccess(res, { employees });
+}
+
 export {
   list,
   create,
@@ -97,4 +102,5 @@ export {
   remove,
   getMe,
   updateMe,
+  listAssignable,
 };

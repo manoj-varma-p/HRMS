@@ -1,10 +1,12 @@
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { Topbar } from "@/components/layout/topbar";
 import { CompanyLogo } from "@/components/layout/company-logo";
+import { NotificationToastListener } from "@/features/notifications/components/notification-toast-listener";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden print:h-auto print:overflow-visible">
+      <NotificationToastListener />
       <aside className="hidden w-64 shrink-0 flex-col border-r bg-background md:flex print:hidden">
         <div className="flex h-14 shrink-0 items-center border-b px-4 font-semibold">
           <CompanyLogo />

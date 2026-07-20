@@ -15,7 +15,7 @@ import {
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import * as taskService from "@/services/task.service";
 import { TaskPriority, TaskStatus } from "@/types/task.types";
-import { TASK_PRIORITY_LABELS, TASK_STATUS_LABELS } from "../task-status-meta";
+import { TASK_POLL_INTERVAL_MS, TASK_PRIORITY_LABELS, TASK_STATUS_LABELS } from "../task-status-meta";
 import { TaskCard } from "./task-card";
 import { TaskListSkeleton } from "./task-list-skeleton";
 import { TaskEmptyState } from "./task-empty-state";
@@ -42,6 +42,7 @@ export function TaskList({ onSelectTask }: { onSelectTask: (taskId: string) => v
           limit: PAGE_SIZE,
         })
         .then((res) => res.data),
+    refetchInterval: TASK_POLL_INTERVAL_MS,
   });
 
   const hasActiveFilters = Boolean(search || status || priority);

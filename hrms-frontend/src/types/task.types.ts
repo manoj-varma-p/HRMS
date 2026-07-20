@@ -26,6 +26,8 @@ export interface Task {
   dueDate: string | null;
   overdue: boolean;
   completedAt: string | null;
+  /** How many times a reviewer has sent this task back from IN_REVIEW for changes. */
+  revisionCount: number;
   createdAt: string;
   updatedAt: string;
 }

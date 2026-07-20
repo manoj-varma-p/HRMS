@@ -4,6 +4,7 @@ import { TASK_STATUS } from "../../shared/constants/taskTypes";
 import {
   canChangeTaskStatus,
   canViewTask,
+  isRequestChangesTransition,
   isTaskOverdue,
   isTaskReopenTransition,
   isValidTaskStatusTransition,
@@ -27,9 +28,9 @@ describe("isValidTaskStatusTransition", () => {
     expect(isValidTaskStatusTransition(TASK_STATUS.TODO, TASK_STATUS.DONE)).toBe(false);
   });
 
-  it("rejects every backward edge except the DONE -> IN_PROGRESS reopen", () => {
+  it("rejects backward edges except the two privileged-only ones (reopen, request changes)", () => {
     expect(isValidTaskStatusTransition(TASK_STATUS.IN_PROGRESS, TASK_STATUS.TODO)).toBe(false);
-    expect(isValidTaskStatusTransition(TASK_STATUS.IN_REVIEW, TASK_STATUS.IN_PROGRESS)).toBe(false);
+    expect(isValidTaskStatusTransition(TASK_STATUS.IN_REVIEW, TASK_STATUS.IN_PROGRESS)).toBe(true);
     expect(isValidTaskStatusTransition(TASK_STATUS.DONE, TASK_STATUS.IN_PROGRESS)).toBe(true);
   });
 
@@ -57,6 +58,19 @@ describe("isTaskReopenTransition", () => {
     expect(isTaskReopenTransition(TASK_STATUS.IN_PROGRESS, TASK_STATUS.DONE)).toBe(false);
     expect(isTaskReopenTransition(TASK_STATUS.DONE, TASK_STATUS.CANCELLED)).toBe(false);
     expect(isTaskReopenTransition(TASK_STATUS.TODO, TASK_STATUS.IN_PROGRESS)).toBe(false);
+  });
+});
+
+describe("isRequestChangesTransition", () => {
+  it("is true only for IN_REVIEW -> IN_PROGRESS", () => {
+    expect(isRequestChangesTransition(TASK_STATUS.IN_REVIEW, TASK_STATUS.IN_PROGRESS)).toBe(true);
+  });
+
+  it("is false for every other pair, including other IN_REVIEW-adjacent ones", () => {
+    expect(isRequestChangesTransition(TASK_STATUS.IN_PROGRESS, TASK_STATUS.IN_REVIEW)).toBe(false);
+    expect(isRequestChangesTransition(TASK_STATUS.IN_REVIEW, TASK_STATUS.DONE)).toBe(false);
+    expect(isRequestChangesTransition(TASK_STATUS.IN_REVIEW, TASK_STATUS.CANCELLED)).toBe(false);
+    expect(isRequestChangesTransition(TASK_STATUS.DONE, TASK_STATUS.IN_PROGRESS)).toBe(false);
   });
 });
 
@@ -175,5 +189,36 @@ describe("canChangeTaskStatus", () => {
     expect(canChangeTaskStatus({ ...base, actorId: "someone-else", actorRole: ROLES.ADMIN })).toBe(
       true
     );
+  });
+
+  it("denies the assignee requesting changes on their own IN_REVIEW task", () => {
+    expect(
+      canChangeTaskStatus({
+        ...base,
+        from: TASK_STATUS.IN_REVIEW,
+        to: TASK_STATUS.IN_PROGRESS,
+      })
+    ).toBe(false);
+  });
+
+  it("lets admin and the department head request changes on an IN_REVIEW task", () => {
+    expect(
+      canChangeTaskStatus({
+        ...base,
+        actorId: "someone-else",
+        actorRole: ROLES.ADMIN,
+        from: TASK_STATUS.IN_REVIEW,
+        to: TASK_STATUS.IN_PROGRESS,
+      })
+    ).toBe(true);
+    expect(
+      canChangeTaskStatus({
+        ...base,
+        actorId: "someone-else",
+        isDepartmentHeadOfTask: true,
+        from: TASK_STATUS.IN_REVIEW,
+        to: TASK_STATUS.IN_PROGRESS,
+      })
+    ).toBe(true);
   });
 });

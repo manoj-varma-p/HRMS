@@ -40,7 +40,8 @@ async function changeStatus(req: Request, res: Response): Promise<void> {
   const task = await taskService.changeTaskStatus(
     req.user!,
     String(req.params.taskId),
-    req.body.status
+    req.body.status,
+    req.body.comment
   );
   sendSuccess(res, { task }, "Task status updated");
 }

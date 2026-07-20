@@ -5,6 +5,8 @@ export const ROUTES = {
   LEAVE: "/leave",
   LEAVE_ADMIN: "/leave/admin",
   TASKS: "/tasks",
+  TASKS_TEAM: "/tasks/team",
+  TASKS_ADMIN: "/tasks/admin",
   EMPLOYEES: "/employees",
   EMPLOYEE_NEW: "/employees/new",
   EMPLOYEE_DETAIL: (id: string) => `/employees/${id}`,

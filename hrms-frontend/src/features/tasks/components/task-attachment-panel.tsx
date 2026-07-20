@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import * as taskService from "@/services/task.service";
+import { TASK_POLL_INTERVAL_MS } from "../task-status-meta";
 import { TaskEmptyState } from "./task-empty-state";
 
 const ACCEPTED_TYPES = ".pdf,.jpg,.jpeg,.png,.docx";
@@ -30,6 +31,7 @@ export function TaskAttachmentPanel({ taskId }: { taskId: string }) {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["task-attachments", taskId],
     queryFn: () => taskService.listAttachments(taskId),
+    refetchInterval: TASK_POLL_INTERVAL_MS,
   });
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {

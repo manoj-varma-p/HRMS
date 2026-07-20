@@ -13,6 +13,17 @@ export interface EmergencyContact {
   phone: string;
 }
 
+// The minimal shape GET /employees/assignable returns — deliberately not
+// the full Employee record (no email/phone/role/status/etc.), and its
+// `department` omits `isActive` since that endpoint's populate() only
+// selects `name`.
+export interface AssignableEmployee {
+  id: string;
+  employeeId: string;
+  fullName: string;
+  department: { _id: string; name: string } | null;
+}
+
 export interface Employee {
   id: string;
   employeeId: string;

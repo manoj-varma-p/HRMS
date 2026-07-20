@@ -1,6 +1,6 @@
 import { apiFetch } from "@/lib/api-client";
 import { API_ENDPOINTS } from "@/constants/api-endpoints";
-import { Employee, EmployeeListResult } from "@/types/employee.types";
+import { AssignableEmployee, Employee, EmployeeListResult } from "@/types/employee.types";
 
 type ApiSuccess<T> = { success: true; message: string; data: T };
 
@@ -29,6 +29,16 @@ export function listEmployees(params: ListEmployeesParams) {
   return apiFetch<ApiSuccess<EmployeeListResult>>(
     `${API_ENDPOINTS.EMPLOYEES.LIST}${toQueryString({ ...params })}`
   );
+}
+
+// Any authenticated user may call this (unlike listEmployees, which is
+// Admin/Super Admin only) — the backend scopes the result to the caller's
+// actual assignment authority. See employee.service.ts's
+// listAssignableEmployees for the exact rule.
+export function listAssignableEmployees() {
+  return apiFetch<ApiSuccess<{ employees: AssignableEmployee[] }>>(
+    API_ENDPOINTS.EMPLOYEES.ASSIGNABLE
+  ).then((res) => res.data.employees);
 }
 
 export interface CreateEmployeeInput {

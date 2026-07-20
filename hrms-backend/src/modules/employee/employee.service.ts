@@ -119,6 +119,44 @@ export async function listEmployees(query: ListQuery) {
   };
 }
 
+function toAssignableEmployee(user: IUser) {
+  return {
+    id: toId(user),
+    employeeId: user.employeeId,
+    fullName: user.fullName,
+    department: user.department,
+  };
+}
+
+// Minimal, purpose-built listing for populating a task "assignee" picker —
+// deliberately not the same data/access shape as listEmployees (which
+// returns full employee records and is Admin/Super Admin only). Any
+// authenticated user may call this, but what they see is scoped to their
+// actual assignment authority: Admin/Super Admin get everyone, a
+// Department Head gets only their own department's employees (the same
+// live headEmployeeId query task.service.ts's assertCanAssignInto uses,
+// never the display-only department.cache.ts), and anyone else gets an
+// empty list. Nothing sensitive to leak either way — the response never
+// includes email/phone/role/status/etc.
+export async function listAssignableEmployees(actor: Actor) {
+  const filter: Record<string, unknown> = {};
+
+  if (actor.role !== ROLES.ADMIN && actor.role !== ROLES.SUPER_ADMIN) {
+    const headedDepartments = await DepartmentModel.find({ headEmployeeId: actor.id }).select(
+      "_id"
+    );
+    if (headedDepartments.length === 0) return [];
+    filter.department = { $in: headedDepartments.map((d) => d._id) };
+  }
+
+  const users = await UserModel.find(filter)
+    .select("employeeId fullName department")
+    .populate({ path: "department", select: "name" })
+    .sort({ fullName: 1 });
+
+  return users.map(toAssignableEmployee);
+}
+
 async function assertReferenceDataExists(departmentId: string, designationId: string) {
   const [department, designation] = await Promise.all([
     DepartmentModel.findById(departmentId),

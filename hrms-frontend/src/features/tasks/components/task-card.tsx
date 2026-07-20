@@ -5,6 +5,7 @@ import { formatISTDate } from "@/lib/format-ist";
 import { Task } from "@/types/task.types";
 import { TaskStatusBadge } from "./task-status-badge";
 import { TaskPriorityBadge } from "./task-priority-badge";
+import { TaskRevisionIndicator } from "./task-revision-indicator";
 
 export function TaskCard({ task, onClick }: { task: Task; onClick: () => void }) {
   return (
@@ -32,6 +33,7 @@ export function TaskCard({ task, onClick }: { task: Task; onClick: () => void })
 
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <TaskStatusBadge status={task.status} />
+          <TaskRevisionIndicator count={task.revisionCount} />
           <span>·</span>
           <span>Assigned by {task.assignedBy.fullName}</span>
           {task.dueDate && (

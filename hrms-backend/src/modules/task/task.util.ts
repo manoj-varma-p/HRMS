@@ -5,12 +5,13 @@ import { TASK_STATUS, TaskStatus } from "../../shared/constants/taskTypes";
 // is making the change — who may invoke which edge is a separate,
 // role-based decision made in task.service.ts (an assignee gets a subset
 // of this graph; assigner/department-head/admin get all of it). CANCELLED
-// and DONE are both terminal except for DONE's single reopen edge back to
-// IN_PROGRESS.
+// is terminal; DONE has a reopen edge back to IN_PROGRESS; IN_REVIEW has a
+// "request changes" edge back to IN_PROGRESS — both are privileged-only,
+// see isPrivilegedOnlyTransition below.
 const TASK_STATUS_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
   [TASK_STATUS.TODO]: [TASK_STATUS.IN_PROGRESS, TASK_STATUS.CANCELLED],
   [TASK_STATUS.IN_PROGRESS]: [TASK_STATUS.IN_REVIEW, TASK_STATUS.CANCELLED],
-  [TASK_STATUS.IN_REVIEW]: [TASK_STATUS.DONE, TASK_STATUS.CANCELLED],
+  [TASK_STATUS.IN_REVIEW]: [TASK_STATUS.DONE, TASK_STATUS.CANCELLED, TASK_STATUS.IN_PROGRESS],
   [TASK_STATUS.DONE]: [TASK_STATUS.IN_PROGRESS],
   [TASK_STATUS.CANCELLED]: [],
 };
@@ -20,11 +21,25 @@ export function isValidTaskStatusTransition(from: TaskStatus, to: TaskStatus): b
   return TASK_STATUS_TRANSITIONS[from].includes(to);
 }
 
-// The one edge in the graph an assignee may never invoke on their own task
-// — reopening a DONE task is reserved for the assigner, department head,
-// or admin.
+// Reopening a DONE task is reserved for the assigner, department head, or
+// admin — an assignee driving their own task never invokes this edge.
 export function isTaskReopenTransition(from: TaskStatus, to: TaskStatus): boolean {
   return from === TASK_STATUS.DONE && to === TASK_STATUS.IN_PROGRESS;
+}
+
+// A reviewer sending a task back from IN_REVIEW to IN_PROGRESS ("Request
+// Changes") — same privileged-only shape as reopen: the assignee submitted
+// it for review, so they don't get to un-submit it themselves via this
+// edge (they could still separately move it forward again once a
+// reviewer's sent it back, or the reviewer could just cancel it instead).
+export function isRequestChangesTransition(from: TaskStatus, to: TaskStatus): boolean {
+  return from === TASK_STATUS.IN_REVIEW && to === TASK_STATUS.IN_PROGRESS;
+}
+
+// Every edge in the graph an assignee may never invoke on their own task,
+// even though the edge itself is legal for a privileged actor.
+function isPrivilegedOnlyTransition(from: TaskStatus, to: TaskStatus): boolean {
+  return isTaskReopenTransition(from, to) || isRequestChangesTransition(from, to);
 }
 
 /**
@@ -80,9 +95,9 @@ export interface TaskStatusChangeAccessInput {
 
 /**
  * Combines "is this edge on the graph at all" with "may this actor invoke
- * it": a plain assignee gets the forward path plus cancel but never the
- * DONE -> IN_PROGRESS reopen edge; admin/department-head get every edge the
- * graph allows, including reopen.
+ * it": a plain assignee gets the forward path plus cancel but never a
+ * privileged-only edge (reopen, request changes); admin/department-head
+ * get every edge the graph allows.
  */
 export function canChangeTaskStatus(input: TaskStatusChangeAccessInput): boolean {
   if (!isValidTaskStatusTransition(input.from, input.to)) return false;
@@ -93,5 +108,7 @@ export function canChangeTaskStatus(input: TaskStatusChangeAccessInput): boolean
     input.isDepartmentHeadOfTask;
   if (isPrivileged) return true;
 
-  return input.actorId === input.assignedTo && !isTaskReopenTransition(input.from, input.to);
+  return (
+    input.actorId === input.assignedTo && !isPrivilegedOnlyTransition(input.from, input.to)
+  );
 }

@@ -23,6 +23,10 @@ export interface ITask extends Document {
   parentTask: Types.ObjectId | null;
   dueDate: string | null; // YYYY-MM-DD, matches LeaveRequest's date-string convention
   completedAt: Date | null;
+  // How many times a reviewer has sent this task back from IN_REVIEW to
+  // IN_PROGRESS ("Request Changes") — never decremented, a running count
+  // of review rounds, not a current-state flag.
+  revisionCount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +54,7 @@ const taskSchema = new Schema<ITask>(
     parentTask: { type: Schema.Types.ObjectId, ref: "Task", default: null },
     dueDate: { type: String, default: null },
     completedAt: { type: Date, default: null },
+    revisionCount: { type: Number, required: true, default: 0 },
   },
   { timestamps: true }
 );

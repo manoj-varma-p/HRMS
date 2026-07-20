@@ -6,7 +6,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { formatISTDate } from "@/lib/format-ist";
 import * as taskService from "@/services/task.service";
+import { TASK_POLL_INTERVAL_MS } from "../task-status-meta";
 import { TaskPriorityBadge } from "./task-priority-badge";
+import { TaskRevisionIndicator } from "./task-revision-indicator";
 import { TaskStatusSelector } from "./task-status-selector";
 import { TaskCommentThread } from "./task-comment-thread";
 import { TaskAttachmentPanel } from "./task-attachment-panel";
@@ -26,6 +28,8 @@ export function TaskDetailSheet({
     queryKey: ["task", taskId],
     queryFn: () => taskService.getTask(taskId as string),
     enabled: taskId !== null,
+    // Only fires while enabled (i.e. while the sheet is actually open).
+    refetchInterval: TASK_POLL_INTERVAL_MS,
   });
 
   return (
@@ -67,7 +71,10 @@ export function TaskDetailSheet({
                 </p>
               )}
 
-              <TaskStatusSelector task={task} />
+              <div className="flex flex-col gap-2">
+                <TaskStatusSelector task={task} />
+                <TaskRevisionIndicator count={task.revisionCount} />
+              </div>
 
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="flex flex-col gap-0.5">

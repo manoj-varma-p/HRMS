@@ -54,6 +54,11 @@ export const changeTaskStatusSchema = z.object({
   params: z.object({ taskId: objectId }),
   body: z.object({
     status: z.enum(Object.values(TASK_STATUS) as [string, ...string[]]),
+    // Only meaningful for the IN_REVIEW -> IN_PROGRESS "request changes"
+    // transition; silently ignored for every other status change. Optional,
+    // matching this codebase's other review-comment fields (leave
+    // approve/reject, document approve/reject).
+    comment: z.string().trim().max(2000).optional(),
   }),
 });
 
