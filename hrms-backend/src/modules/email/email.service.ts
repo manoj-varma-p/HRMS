@@ -8,6 +8,8 @@ import { testEmail, TestEmailData } from "./templates/test-email";
 import { leaveAppliedEmail, LeaveAppliedEmailData } from "./templates/leave-applied";
 import { leaveApprovedEmail, LeaveApprovedEmailData } from "./templates/leave-approved";
 import { leaveRejectedEmail, LeaveRejectedEmailData } from "./templates/leave-rejected";
+import { SendEmailCommand } from "@aws-sdk/client-ses";
+import { EMAIL_PROVIDER } from "../configuration/configuration.model";
 
 // One entry per template — add a new file under templates/ and a new key
 // here to add a template. Business services never call nodemailer/SES
@@ -51,10 +53,38 @@ async function send<T extends EmailTemplateName>(
 ): Promise<SendResult> {
   try {
     const config = await getOrCreateConfiguration();
-    const { transport, from } = resolveSender(config);
+const { provider, transport, sesClient, from } = resolveSender(config);
     const render = TEMPLATES[template];
     const { subject, html } = render(data as never, config.companyProfile);
-    await transport.sendMail({ from, to, subject, html });
+if (provider === EMAIL_PROVIDER.SMTP) {
+  await transport!.sendMail({
+    from,
+    to,
+    subject,
+    html,
+  });
+} else {
+  await sesClient!.send(
+    new SendEmailCommand({
+      Source: from,
+      Destination: {
+        ToAddresses: [to],
+      },
+      Message: {
+        Subject: {
+          Data: subject,
+          Charset: "UTF-8",
+        },
+        Body: {
+          Html: {
+            Data: html,
+            Charset: "UTF-8",
+          },
+        },
+      },
+    })
+  );
+}
     return { success: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error sending email";
