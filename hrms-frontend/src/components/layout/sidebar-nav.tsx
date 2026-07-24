@@ -10,6 +10,7 @@ import {
   Users,
   Megaphone,
   FileBarChart,
+  FileSpreadsheet,
   History,
   ShieldCheck,
 } from "lucide-react";
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { ROUTES } from "@/constants/routes";
 import { ROLES, Role } from "@/constants/roles";
 import { useAuth } from "@/hooks/use-auth";
+import { useAdobeLicenseAccess } from "@/hooks/use-adobe-license-access";
 
 const navItems = [
   { label: "Dashboard", href: ROUTES.DASHBOARD, icon: LayoutDashboard },
@@ -48,15 +50,27 @@ const navItems = [
     icon: ShieldCheck,
     allow: [ROLES.ADMIN, ROLES.SUPER_ADMIN] as Role[],
   },
+  {
+    label: "Adobe Licenses",
+    href: ROUTES.ADMINISTRATION_ADOBE_LICENSES,
+    icon: FileSpreadsheet,
+  },
 ];
 
 export function SidebarNav() {
   const pathname = usePathname();
   const { user } = useAuth();
+  const { canAccess: canAccessAdobeLicenses } = useAdobeLicenseAccess();
+  const isAdmin = !!user && (user.role === ROLES.ADMIN || user.role === ROLES.SUPER_ADMIN);
 
-  const visibleItems = navItems.filter(
-    (item) => !item.allow || (user && item.allow.includes(user.role))
-  );
+  const visibleItems = navItems.filter((item) => {
+    // Admins reach Adobe Licenses through the Administration page, not the
+    // navbar — only a granted non-admin employee gets a direct nav entry.
+    if (item.href === ROUTES.ADMINISTRATION_ADOBE_LICENSES) {
+      return !isAdmin && canAccessAdobeLicenses;
+    }
+    return !item.allow || (user && item.allow.includes(user.role));
+  });
 
   return (
     <nav className="flex flex-col gap-1 p-3">

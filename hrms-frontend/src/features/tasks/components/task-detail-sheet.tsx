@@ -89,11 +89,11 @@ export function TaskDetailSheet({
                 </div>
                 <div className="flex flex-col gap-0.5">
                   <span className="text-xs text-muted-foreground">Assignee</span>
-                  <span>{task.assignedTo.fullName}</span>
+                  <span>{task.assignedTo?.fullName ?? "Unassigned"}</span>
                 </div>
                 <div className="flex flex-col gap-0.5">
                   <span className="text-xs text-muted-foreground">Creator</span>
-                  <span>{task.assignedBy.fullName}</span>
+                  <span>{task.assignedBy?.fullName ?? "—"}</span>
                 </div>
               </div>
 

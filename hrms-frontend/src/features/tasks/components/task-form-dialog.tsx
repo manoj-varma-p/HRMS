@@ -81,7 +81,7 @@ export function TaskFormDialog({ open, onOpenChange, task }: TaskFormDialogProps
       ? {
           title: task.title,
           description: task.description ?? "",
-          assignedTo: task.assignedTo._id,
+          assignedTo: task.assignedTo?._id ?? "",
           priority: task.priority,
           dueDate: task.dueDate ?? "",
         }
@@ -144,7 +144,9 @@ export function TaskFormDialog({ open, onOpenChange, task }: TaskFormDialogProps
             <div className="flex flex-col gap-2">
               <Label>Assignee</Label>
               <p className="text-sm text-muted-foreground">
-                {task!.assignedTo.fullName} ({task!.assignedTo.employeeId})
+                {task!.assignedTo
+                  ? `${task!.assignedTo.fullName} (${task!.assignedTo.employeeId})`
+                  : "Unassigned"}
               </p>
             </div>
           ) : (

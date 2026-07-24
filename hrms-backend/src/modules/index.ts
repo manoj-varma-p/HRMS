@@ -18,6 +18,7 @@ import configurationRoutes from "./configuration/configuration.routes";
 import publicRoutes from "./public/public.routes";
 import documentRoutes from "./documents/document.routes";
 import taskRoutes from "./task/task.routes";
+import adobeLicenseRoutes from "./adobe-license/adobe-license.routes";
 
 const router = Router();
 
@@ -40,5 +41,6 @@ router.use("/activity", activityLogRoutes);
 router.use("/configuration", configurationRoutes);
 router.use(documentRoutes);
 router.use(taskRoutes);
+router.use(adobeLicenseRoutes);
 
 export default router;

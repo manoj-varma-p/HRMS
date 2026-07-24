@@ -32,14 +32,14 @@ const DEV_CONFIG_ENCRYPTION_KEY =
 
 export const env = {
   nodeEnv,
-  port: Number(requireEnv("PORT", "4000")),
+  port: Number(requireEnv("PORT", "5000")),
   clientOrigin: requireEnv("CLIENT_ORIGIN", "http://localhost:3000"),
   // This server's own public-facing origin — distinct from clientOrigin
   // (the frontend's origin). Needed to turn relative asset paths (e.g. the
   // company logo, stored as "/public/company-logo") into absolute URLs for
   // contexts with no browser origin to resolve against, like an <img> src
   // in an email. Defaults to the same host:port this process listens on.
-  apiBaseUrl: requireEnv("API_BASE_URL", "http://localhost:4000"),
+  apiBaseUrl: requireEnv("API_BASE_URL", "http://localhost:5000"),
   mongoUri: requireEnv("MONGO_URI", "mongodb://localhost:27017/hrms"),
   jwtAccessSecret: requireEnv("JWT_ACCESS_SECRET", DEV_JWT_ACCESS_SECRET),
   jwtRefreshSecret: requireEnv("JWT_REFRESH_SECRET", DEV_JWT_REFRESH_SECRET),

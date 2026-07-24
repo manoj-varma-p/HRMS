@@ -59,11 +59,11 @@ export default function ReportsPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {REPORT_CARDS.map((card) => (
             <Link key={card.href} href={card.href} className="group block h-full">
-              <Card className="h-full border border-border/40 transition-all duration-400 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-hover:bg-white group-hover:text-black group-hover:border-transparent group-hover:-translate-y-1 group-hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)]">
+              <Card className="h-full border border-border/40 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-white group-hover:text-black group-hover:border-transparent group-hover:-translate-y-1 group-hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)]">
                 <CardHeader>
-                  <card.icon className="h-6 w-6 text-muted-foreground transition-colors duration-400 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-hover:text-black/80" />
-                  <CardTitle className="mt-2 transition-colors duration-400 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-hover:text-black">{card.title}</CardTitle>
-                  <CardDescription className="transition-colors duration-400 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-hover:text-black/60">{card.description}</CardDescription>
+                  <card.icon className="h-6 w-6 text-muted-foreground transition-colors duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:text-black/80" />
+                  <CardTitle className="mt-2 transition-colors duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:text-black">{card.title}</CardTitle>
+                  <CardDescription className="transition-colors duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:text-black/60">{card.description}</CardDescription>
                 </CardHeader>
                 <CardContent />
               </Card>

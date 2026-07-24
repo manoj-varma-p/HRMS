@@ -6,6 +6,7 @@ import {
   CalendarClock,
   CalendarHeart,
   ClipboardList,
+  FileSpreadsheet,
   History,
   LogIn,
   LogOut,
@@ -40,6 +41,7 @@ const QUICK_ACTIONS = [
   { label: "Manage Designations", href: ROUTES.ADMINISTRATION_DESIGNATIONS, icon: UsersRound },
   { label: "Manage Announcements", href: ROUTES.ANNOUNCEMENTS_ADMIN, icon: Megaphone },
   { label: "Activity Center", href: ROUTES.ACTIVITY, icon: History },
+  { label: "Adobe Licenses", href: ROUTES.ADMINISTRATION_ADOBE_LICENSES, icon: FileSpreadsheet },
 ];
 
 const LEAVE_STATUS_COLOR: Record<string, string> = {

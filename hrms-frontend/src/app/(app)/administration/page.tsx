@@ -11,6 +11,7 @@ import {
   Mail,
   ShieldCheck,
   SlidersHorizontal,
+  FileSpreadsheet,
 } from "lucide-react";
 import { RoleGuard } from "@/components/layout/role-guard";
 import { ROLES } from "@/constants/roles";
@@ -77,6 +78,12 @@ const CATEGORIES = [
     description: "Date format, time format, currency, and timezone.",
     href: ROUTES.ADMINISTRATION_GENERAL_SETTINGS,
     icon: SlidersHorizontal,
+  },
+  {
+    title: "Adobe Licenses",
+    description: "Spreadsheet-style admin data entry for Adobe license tracking.",
+    href: ROUTES.ADMINISTRATION_ADOBE_LICENSES,
+    icon: FileSpreadsheet,
   },
 ];
 

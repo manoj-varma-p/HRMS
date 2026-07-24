@@ -139,9 +139,9 @@ export function TasksTable({
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span>{task.assignedTo.fullName}</span>
+                      <span>{task.assignedTo?.fullName ?? "Unassigned"}</span>
                       <span className="text-xs text-muted-foreground">
-                        {task.assignedTo.employeeId}
+                        {task.assignedTo?.employeeId ?? "—"}
                       </span>
                     </div>
                   </TableCell>

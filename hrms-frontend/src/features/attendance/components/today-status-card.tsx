@@ -111,7 +111,7 @@ export function TodayStatusCard() {
 
         <div className="flex gap-2">
           <Button
-            className="flex-1 transition-all duration-400 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(0,0,0,0.2)] hover:bg-white dark:hover:bg-white hover:text-black dark:hover:text-black"
+            className="flex-1 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(0,0,0,0.2)] hover:bg-white dark:hover:bg-white hover:text-black dark:hover:text-black"
             disabled={hasCheckedIn || checkInMutation.isPending}
             onClick={() => checkInMutation.mutate()}
           >
@@ -119,7 +119,7 @@ export function TodayStatusCard() {
             Check In
           </Button>
           <Button
-            className="flex-1 transition-all duration-400 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(0,0,0,0.2)] hover:bg-white hover:text-black dark:hover:bg-white dark:hover:text-black hover:border-transparent"
+            className="flex-1 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(0,0,0,0.2)] hover:bg-white hover:text-black dark:hover:bg-white dark:hover:text-black hover:border-transparent"
             variant="outline"
             disabled={!hasCheckedIn || hasCheckedOut || checkOutMutation.isPending}
             onClick={() => checkOutMutation.mutate()}

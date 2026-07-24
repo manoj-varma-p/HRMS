@@ -16,7 +16,8 @@ export interface IActivityLog extends Document {
     | "Report"
     | "Announcement"
     | "EmployeeDocument"
-    | "Task";
+    | "Task"
+    | "AdobeLicenseSheet";
   targetId: Types.ObjectId;
   metadata?: Record<string, unknown>;
   createdAt: Date;
@@ -41,6 +42,7 @@ const activityLogSchema = new Schema<IActivityLog>(
         "Announcement",
         "EmployeeDocument",
         "Task",
+        "AdobeLicenseSheet",
       ],
       required: true,
     },

@@ -35,7 +35,7 @@ export function TaskCard({ task, onClick }: { task: Task; onClick: () => void })
           <TaskStatusBadge status={task.status} />
           <TaskRevisionIndicator count={task.revisionCount} />
           <span>·</span>
-          <span>Assigned by {task.assignedBy.fullName}</span>
+          <span>Assigned by {task.assignedBy?.fullName ?? "—"}</span>
           {task.dueDate && (
             <>
               <span>·</span>

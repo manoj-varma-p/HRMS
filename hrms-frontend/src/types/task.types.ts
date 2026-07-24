@@ -19,8 +19,8 @@ export interface Task {
   description: string | null;
   status: TaskStatus;
   priority: TaskPriority;
-  assignedBy: TaskUserRef;
-  assignedTo: TaskUserRef;
+  assignedBy: TaskUserRef | null;
+  assignedTo: TaskUserRef | null;
   department: TaskDepartmentRef | null;
   parentTask: string | null;
   dueDate: string | null;

@@ -28,6 +28,9 @@ const ACTION_LABELS: Record<string, string> = {
   ANNOUNCEMENT_UPDATED: "updated an announcement",
   ANNOUNCEMENT_PUBLISHED: "published an announcement",
   ANNOUNCEMENT_ARCHIVED: "archived an announcement",
+  ADOBE_LICENSE_SHEET_UPDATED: "updated the Adobe License sheet",
+  ADOBE_LICENSE_ACCESS_GRANTED: "granted Adobe License access",
+  ADOBE_LICENSE_ACCESS_REVOKED: "revoked Adobe License access",
 };
 
 export function formatActivityLabel(entry: RecentActivityEntry): string {

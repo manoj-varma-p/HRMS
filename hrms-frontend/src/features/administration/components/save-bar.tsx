@@ -15,9 +15,9 @@ export function SaveBar({
   if (!visible) return null;
 
   return (
-    <div className="sticky bottom-4 z-40 flex items-center justify-between gap-3 rounded-xl border bg-popover px-4 py-3 text-popover-foreground shadow-lg">
-      <span className="text-sm font-medium">You have unsaved changes</span>
-      <div className="flex gap-2">
+    <div className="sticky bottom-4 z-40 flex flex-col gap-3 rounded-xl border border-border/60 bg-card/95 px-4 py-3 text-card-foreground shadow-[0_12px_30px_rgba(0,0,0,0.12)] backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
+      <span className="text-sm font-medium text-foreground">You have unsaved changes</span>
+      <div className="flex flex-col-reverse gap-2 sm:flex-row">
         <Button variant="outline" size="sm" disabled={isSaving} onClick={onDiscard}>
           Discard
         </Button>

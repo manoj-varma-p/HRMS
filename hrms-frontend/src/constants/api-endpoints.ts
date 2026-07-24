@@ -143,4 +143,12 @@ export const API_ENDPOINTS = {
     ATTACHMENT_DOWNLOAD_URL: (attachmentId: string) =>
       `/task-attachments/${attachmentId}/download-url`,
   },
+  ADOBE_LICENSES: {
+    GET: "/adobe-licenses",
+    UPDATE: "/adobe-licenses",
+    ACCESS_ME: "/adobe-licenses/access/me",
+    ACCESS_LIST: "/adobe-licenses/access",
+    GRANT_ACCESS: (userId: string) => `/adobe-licenses/access/${userId}`,
+    REVOKE_ACCESS: (userId: string) => `/adobe-licenses/access/${userId}`,
+  },
 } as const;
