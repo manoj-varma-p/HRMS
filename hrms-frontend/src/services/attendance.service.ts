@@ -51,6 +51,23 @@ export function getHistory(params: MonthParams) {
   );
 }
 
+export async function exportHistoryCsv(
+  params: MonthParams,
+  filename = "attendance-history.csv"
+): Promise<void> {
+  const blob = await apiFetchBlob(
+    `${API_ENDPOINTS.ATTENDANCE.HISTORY_EXPORT}${toQueryString({ ...params })}`
+  );
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 export function getCalendar(params: MonthParams) {
   return apiFetch<ApiSuccess<{ year: number; month: number; days: DayStatusEntry[] }>>(
     `${API_ENDPOINTS.ATTENDANCE.CALENDAR}${toQueryString({ ...params })}`

@@ -20,6 +20,11 @@ router.post("/check-out", attendanceController.doCheckOut);
 router.get("/today", attendanceController.today);
 
 router.get("/history", validate(monthQuerySchema), attendanceController.history);
+router.get(
+  "/history/export",
+  validate(monthQuerySchema),
+  attendanceController.exportHistory
+);
 router.get("/calendar", validate(monthQuerySchema), attendanceController.calendar);
 router.get("/summary", validate(monthQuerySchema), attendanceController.summary);
 

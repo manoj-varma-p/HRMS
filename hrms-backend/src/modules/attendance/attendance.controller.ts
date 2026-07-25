@@ -37,6 +37,23 @@ async function history(req: Request, res: Response): Promise<void> {
   sendSuccess(res, { year, month, days });
 }
 
+async function exportHistory(req: Request, res: Response): Promise<void> {
+  const query = req.validated!.query as {
+    year?: number;
+    month?: number;
+    employeeId?: string;
+  };
+  const employeeId = await attendanceService.resolveViewableEmployeeId(
+    req.user!,
+    query.employeeId
+  );
+  const { year, month } = { ...currentYearMonth(), ...query };
+  const csv = await attendanceService.exportMonthDayStatusesCsv(employeeId, year, month);
+  res.setHeader("Content-Type", "text/csv");
+  res.setHeader("Content-Disposition", 'attachment; filename="attendance-history.csv"');
+  res.send(csv);
+}
+
 async function calendar(req: Request, res: Response): Promise<void> {
   const query = req.validated!.query as {
     year?: number;
@@ -85,4 +102,14 @@ async function adminExport(req: Request, res: Response): Promise<void> {
   res.send(csv);
 }
 
-export { doCheckIn, doCheckOut, today, history, calendar, summary, adminList, adminExport };
+export {
+  doCheckIn,
+  doCheckOut,
+  today,
+  history,
+  exportHistory,
+  calendar,
+  summary,
+  adminList,
+  adminExport,
+};

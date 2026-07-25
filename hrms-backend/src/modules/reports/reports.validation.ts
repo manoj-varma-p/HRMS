@@ -118,6 +118,15 @@ export const monthlySummaryReportQuerySchema = z.object({
   }),
 });
 
+export const monthlySummaryReportExportQuerySchema = z.object({
+  query: monthlySummaryReportQuerySchema.shape.query.omit({
+    page: true,
+    limit: true,
+    sortBy: true,
+    sortOrder: true,
+  }),
+});
+
 export const printLogSchema = z.object({
   body: z.object({
     reportType: z.enum(["attendance", "leave", "employee", "department", "monthly-summary"]),

@@ -760,6 +760,91 @@ export async function getMonthlySummaryReport(query: MonthlySummaryReportQuery) 
   return { rows, year: query.year, month: query.month, pagination };
 }
 
+export interface MonthlySummaryReportFilters {
+  year: number;
+  month: number;
+  department?: string;
+  designation?: string;
+  search?: string;
+}
+
+export async function exportMonthlySummaryReportCsv(
+  actor: Actor,
+  filters: MonthlySummaryReportFilters
+): Promise<string> {
+  const filter = buildEmployeeFilter({
+    department: filters.department,
+    designation: filters.designation,
+    search: filters.search,
+  });
+
+  const users = await UserModel.find(filter)
+    .populate([
+      { path: "department", select: "name" },
+      { path: "designation", select: "name" },
+    ])
+    .sort({ fullName: 1 });
+
+  const summaries = await Promise.all(
+    users.map((u) => getMonthSummary(String(u._id), filters.year, filters.month))
+  );
+
+  const header = [
+    "Employee ID",
+    "Full Name",
+    "Department",
+    "Designation",
+    "On Time",
+    "Late",
+    "Half Day",
+    "Absent",
+    "On Leave",
+    "Holiday",
+    "Weekend",
+    "Missed Checkout",
+    "Total Worked Hours",
+  ];
+
+  const rows = users.map((u, i) => {
+    const dept = u.department as unknown as NameRef;
+    const desig = u.designation as unknown as NameRef;
+    const s = summaries[i];
+    return [
+      u.employeeId,
+      u.fullName,
+      dept?.name ?? "",
+      desig?.name ?? "",
+      s.onTime.toString(),
+      s.late.toString(),
+      s.halfDay.toString(),
+      s.absent.toString(),
+      s.onLeave.toString(),
+      s.holiday.toString(),
+      s.weekend.toString(),
+      s.missedCheckout.toString(),
+      s.totalWorkedHours.toString(),
+    ];
+  });
+
+  await recordActivity({
+    actor,
+    action: ACTIVITY_ACTIONS.REPORT_EXPORTED,
+    targetType: "Report",
+    targetId: actor.id,
+    metadata: { reportType: "monthly-summary", rowCount: rows.length },
+  });
+
+  await notifyUser({
+    user: actor.id,
+    type: NOTIFICATION_TYPES.SYSTEM,
+    title: "Report export ready",
+    message: `Your Monthly Summary Report export (${rows.length} row${rows.length === 1 ? "" : "s"}) completed`,
+    metadata: { reportType: "monthly-summary" },
+  });
+
+  return exporters.csv(header, rows).content;
+}
+
 /* ------------------------------------------------------------------ */
 /* Print activity logging                                              */
 /* ------------------------------------------------------------------ */

@@ -12,6 +12,7 @@ import {
   employeeReportExportQuerySchema,
   departmentReportQuerySchema,
   monthlySummaryReportQuerySchema,
+  monthlySummaryReportExportQuerySchema,
   printLogSchema,
 } from "./reports.validation";
 import * as reportsController from "./reports.controller";
@@ -47,6 +48,11 @@ router.get(
   "/monthly-summary",
   validate(monthlySummaryReportQuerySchema),
   reportsController.monthlySummaryReport
+);
+router.get(
+  "/monthly-summary/export",
+  validate(monthlySummaryReportExportQuerySchema),
+  reportsController.exportMonthlySummaryReport
 );
 
 router.post("/print-log", validate(printLogSchema), reportsController.printLog);

@@ -281,6 +281,25 @@ export async function getMonthSummary(
   return summary;
 }
 
+export async function exportMonthDayStatusesCsv(
+  employeeId: string,
+  year: number,
+  month: number
+): Promise<string> {
+  const days = await getMonthDayStatuses(employeeId, year, month);
+
+  const header = ["Date", "Check In", "Check Out", "Worked Hours", "Status"];
+  const rows = days.map((d) => [
+    d.date,
+    d.checkIn ? d.checkIn.toISOString() : "",
+    d.checkOut ? d.checkOut.toISOString() : "",
+    d.workedHours?.toString() ?? "",
+    d.status ?? "",
+  ]);
+
+  return exporters.csv(header, rows).content;
+}
+
 export function resolveViewableEmployeeId(
   actor: Actor,
   requestedEmployeeId: string | undefined

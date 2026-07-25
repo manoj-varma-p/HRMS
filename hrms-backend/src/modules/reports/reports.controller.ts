@@ -72,6 +72,21 @@ async function monthlySummaryReport(req: Request, res: Response): Promise<void> 
   sendSuccess(res, result);
 }
 
+async function exportMonthlySummaryReport(req: Request, res: Response): Promise<void> {
+  const query = req.validated!.query as {
+    year?: number;
+    month?: number;
+    department?: string;
+    designation?: string;
+    search?: string;
+  };
+  const { year, month } = { ...currentYearMonth(), ...query };
+  const csv = await reportsService.exportMonthlySummaryReportCsv(req.user!, { ...query, year, month });
+  res.setHeader("Content-Type", "text/csv");
+  res.setHeader("Content-Disposition", 'attachment; filename="monthly-summary-report.csv"');
+  res.send(csv);
+}
+
 async function printLog(req: Request, res: Response): Promise<void> {
   const { reportType } = req.body as { reportType: string };
   await reportsService.logReportPrint(req.user!, reportType);
@@ -87,5 +102,6 @@ export {
   exportEmployeeReport,
   departmentReport,
   monthlySummaryReport,
+  exportMonthlySummaryReport,
   printLog,
 };

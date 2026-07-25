@@ -159,6 +159,15 @@ export function getMonthlySummaryReport(params: MonthlySummaryReportParams) {
   >(`${API_ENDPOINTS.REPORTS.MONTHLY_SUMMARY}${toQueryString({ ...params })}`);
 }
 
+export async function exportMonthlySummaryReportCsv(
+  params: Omit<MonthlySummaryReportParams, "page" | "limit" | "sortBy" | "sortOrder">
+): Promise<void> {
+  const blob = await apiFetchBlob(
+    `${API_ENDPOINTS.REPORTS.MONTHLY_SUMMARY_EXPORT}${toQueryString({ ...params })}`
+  );
+  downloadBlob(blob, "monthly-summary-report.csv");
+}
+
 export function logReportPrint(reportType: string) {
   return apiFetch<ApiSuccess<Record<string, never>>>(API_ENDPOINTS.REPORTS.PRINT_LOG, {
     method: "POST",

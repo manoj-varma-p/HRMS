@@ -16,12 +16,14 @@ export function MonthlySummaryTable({
   isError,
   pagination,
   onPageChange,
+  onRowClick,
 }: {
   rows: MonthlySummaryReportRow[];
   isLoading: boolean;
   isError: boolean;
   pagination?: PaginationInfo;
   onPageChange: (page: number) => void;
+  onRowClick?: (row: MonthlySummaryReportRow) => void;
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -76,7 +78,11 @@ export function MonthlySummaryTable({
             {!isLoading &&
               !isError &&
               rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  className={onRowClick ? "cursor-pointer hover:bg-muted/50" : undefined}
+                  onClick={() => onRowClick?.(row)}
+                >
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="font-medium">{row.fullName}</span>
