@@ -109,18 +109,16 @@ function computeHalfYearBuckets(
   pendingH2: number,
   carryForwardEnabled: boolean
 ) {
-  const h1BaseTotal = quotaPerHalf;
-  const h1Total = h1BaseTotal + extraH1;
+  const h1Total = quotaPerHalf;
   const h1Remaining = Math.max(0, h1Total - usedH1 - pendingH1);
 
   const carryOver = carryForwardEnabled ? Math.max(0, h1Total - usedH1) : 0;
-  const h2BaseTotal = quotaPerHalf + carryOver;
-  const h2Total = h2BaseTotal + extraH2;
+  const h2Total = quotaPerHalf + carryOver;
   const h2Remaining = Math.max(0, h2Total - usedH2 - pendingH2);
 
   return {
-    half1: { used: usedH1, pending: pendingH1, baseTotal: h1BaseTotal, extra: extraH1, total: h1Total, remaining: h1Remaining },
-    half2: { used: usedH2, pending: pendingH2, baseTotal: h2BaseTotal, extra: extraH2, total: h2Total, remaining: h2Remaining },
+    half1: { used: usedH1, pending: pendingH1, total: h1Total, remaining: h1Remaining },
+    half2: { used: usedH2, pending: pendingH2, total: h2Total, remaining: h2Remaining },
   };
 }
 
@@ -196,7 +194,7 @@ export async function getLeaveBalance(employeeId: string, year: number) {
     }
   }
 
-  const annualAccruedTotal = Math.round((balance.annualAccrued + (balance.annualExtra || 0)) * 100) / 100;
+  const annualAccruedTotal = Math.round(balance.annualAccrued * 100) / 100;
 
   return {
     year,
@@ -223,9 +221,7 @@ export async function getLeaveBalance(employeeId: string, year: number) {
     annual: {
       used: balance.annualUsed,
       pending: pendingAnnual,
-      baseAccrued: balance.annualAccrued,
       accrued: annualAccruedTotal,
-      extra: balance.annualExtra || 0,
       remaining: Math.max(0, Math.round((annualAccruedTotal - balance.annualUsed - pendingAnnual) * 100) / 100),
     },
     unpaid: { used: balance.unpaidUsed, pending: pendingUnpaid, total: null, remaining: null },
