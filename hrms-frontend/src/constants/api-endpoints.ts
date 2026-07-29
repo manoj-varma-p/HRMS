@@ -62,6 +62,7 @@ export const API_ENDPOINTS = {
     ADMIN_LIST: "/leaves",
     APPROVE: (id: string) => `/leaves/${id}/approve`,
     REJECT: (id: string) => `/leaves/${id}/reject`,
+    ALLOCATIONS: "/leaves/allocations",
   },
   HOLIDAYS: {
     LIST: "/holidays",

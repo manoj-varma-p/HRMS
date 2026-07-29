@@ -106,14 +106,17 @@ export interface LeaveAllocationItem {
 }
 
 export function grantExtraLeave(input: GrantExtraLeaveInput) {
-  return apiFetch<ApiSuccess<{ allocation: LeaveAllocationItem }>>("/api/leave/allocations", {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
+  return apiFetch<ApiSuccess<{ allocation: LeaveAllocationItem }>>(
+    API_ENDPOINTS.LEAVES.ALLOCATIONS,
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    }
+  );
 }
 
 export function listLeaveAllocations(params: { employeeId?: string; year?: number } = {}) {
   return apiFetch<ApiSuccess<{ allocations: LeaveAllocationItem[] }>>(
-    `/api/leave/allocations${toQueryString({ ...params })}`
+    `${API_ENDPOINTS.LEAVES.ALLOCATIONS}${toQueryString({ ...params })}`
   );
 }
