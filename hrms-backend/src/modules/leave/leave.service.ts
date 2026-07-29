@@ -20,6 +20,7 @@ import { notifyAdmins, notifyUser } from "../notifications/notifications.service
 import { UserModel } from "../user/user.model";
 import { ILeaveBalance, LeaveBalanceModel } from "./leave-balance.model";
 import { ILeaveRequest, LeaveRequestModel } from "./leave-request.model";
+import { LeaveAllocationModel, ALLOCATION_PERIOD, AllocationPeriod } from "./leave-allocation.model";
 import { computeLeaveWorkingDays, countEligibleAccrualMonths } from "./leave.util";
 
 interface Actor {
@@ -99,18 +100,22 @@ export async function getApprovedLeaveDateSet(
 // starts, so this is never computed against an in-progress half.
 function computeHalfYearBuckets(
   quotaPerHalf: number,
+  extraH1: number,
+  extraH2: number,
   usedH1: number,
   usedH2: number,
+  pendingH1: number,
+  pendingH2: number,
   carryForwardEnabled: boolean
 ) {
-  const h1Total = quotaPerHalf;
-  const h1Remaining = h1Total - usedH1;
-  const h2Total = quotaPerHalf + (carryForwardEnabled ? Math.max(0, h1Remaining) : 0);
-  const h2Remaining = h2Total - usedH2;
+  const h1Total = quotaPerHalf + extraH1;
+  const h1Remaining = Math.max(0, h1Total - usedH1 - pendingH1);
+  const h2Total = quotaPerHalf + extraH2 + (carryForwardEnabled ? Math.max(0, h1Total - usedH1) : 0);
+  const h2Remaining = Math.max(0, h2Total - usedH2 - pendingH2);
 
   return {
-    half1: { used: usedH1, total: h1Total, remaining: h1Remaining },
-    half2: { used: usedH2, total: h2Total, remaining: h2Remaining },
+    half1: { used: usedH1, pending: pendingH1, total: h1Total, remaining: h1Remaining },
+    half2: { used: usedH2, pending: pendingH2, total: h2Total, remaining: h2Remaining },
   };
 }
 
@@ -159,27 +164,67 @@ export async function getLeaveBalance(employeeId: string, year: number) {
     await balance.save();
   }
 
+  const pendingRequests = await LeaveRequestModel.find({
+    employee: employeeId,
+    status: LEAVE_REQUEST_STATUS.PENDING,
+    startDate: { $gte: `${year}-01-01`, $lte: `${queryYearEnd(year)}` },
+  });
+
+  let pendingSickH1 = 0, pendingSickH2 = 0;
+  let pendingCasualH1 = 0, pendingCasualH2 = 0;
+  let pendingAnnual = 0, pendingUnpaid = 0;
+
+  for (const req of pendingRequests) {
+    const half = leaveHalf(req.startDate);
+    if (req.leaveType === LEAVE_TYPES.SICK) {
+      if (half === "H1") pendingSickH1 += req.days;
+      else pendingSickH2 += req.days;
+    } else if (req.leaveType === LEAVE_TYPES.CASUAL_PAID) {
+      if (half === "H1") pendingCasualH1 += req.days;
+      else pendingCasualH2 += req.days;
+    } else if (req.leaveType === LEAVE_TYPES.ANNUAL) {
+      pendingAnnual += req.days;
+    } else if (req.leaveType === LEAVE_TYPES.UNPAID) {
+      pendingUnpaid += req.days;
+    }
+  }
+
+  const annualAccruedTotal = Math.round((balance.annualAccrued + (balance.annualExtra || 0)) * 100) / 100;
+
   return {
     year,
     sick: computeHalfYearBuckets(
       policy.sickQuotaPerHalf,
+      balance.sickExtraH1 || 0,
+      balance.sickExtraH2 || 0,
       balance.sickUsedH1,
       balance.sickUsedH2,
+      pendingSickH1,
+      pendingSickH2,
       policy.carryForwardEnabled
     ),
     casualPaid: computeHalfYearBuckets(
       policy.casualPaidQuotaPerHalf,
+      balance.casualPaidExtraH1 || 0,
+      balance.casualPaidExtraH2 || 0,
       balance.casualPaidUsedH1,
       balance.casualPaidUsedH2,
+      pendingCasualH1,
+      pendingCasualH2,
       policy.carryForwardEnabled
     ),
     annual: {
       used: balance.annualUsed,
-      accrued: balance.annualAccrued,
-      remaining: Math.round((balance.annualAccrued - balance.annualUsed) * 100) / 100,
+      pending: pendingAnnual,
+      accrued: annualAccruedTotal,
+      remaining: Math.max(0, Math.round((annualAccruedTotal - balance.annualUsed - pendingAnnual) * 100) / 100),
     },
-    unpaid: { used: balance.unpaidUsed, total: null, remaining: null },
+    unpaid: { used: balance.unpaidUsed, pending: pendingUnpaid, total: null, remaining: null },
   };
+}
+
+function queryYearEnd(year: number): string {
+  return `${year}-12-31`;
 }
 
 interface ApplyLeaveInput {
@@ -253,6 +298,31 @@ export async function applyLeave(actor: Actor, input: ApplyLeaveInput) {
     throw new ApiError(400, `Leave cannot exceed ${policy.maxDurationDays} working day(s)`);
   }
 
+  // Rule: Paid leaves cannot exceed 2 working days. Requests > 2 days must be Unpaid Leave.
+  if (days > 2 && input.leaveType !== LEAVE_TYPES.UNPAID) {
+    throw new ApiError(
+      400,
+      "Leaves longer than 2 working days cannot be taken as paid leave. Please select Unpaid Leave."
+    );
+  }
+
+  // Rule: Casual leave can only be taken once per calendar month.
+  if (input.leaveType === LEAVE_TYPES.CASUAL_PAID) {
+    const startMonthPrefix = input.startDate.slice(0, 7);
+    const existingCasualInMonth = await LeaveRequestModel.findOne({
+      employee: actor.id,
+      leaveType: LEAVE_TYPES.CASUAL_PAID,
+      status: { $in: [LEAVE_REQUEST_STATUS.PENDING, LEAVE_REQUEST_STATUS.APPROVED] },
+      startDate: { $regex: `^${startMonthPrefix}` },
+    });
+    if (existingCasualInMonth) {
+      throw new ApiError(
+        400,
+        "Casual leave can only be taken once per month. You have already applied for or taken casual leave this month."
+      );
+    }
+  }
+
   if (input.leaveType !== LEAVE_TYPES.UNPAID) {
     const year = Number(input.startDate.slice(0, 4));
     const balance = await getLeaveBalance(actor.id, year);
@@ -266,7 +336,7 @@ export async function applyLeave(actor: Actor, input: ApplyLeaveInput) {
     if (relevant.remaining !== null && days > relevant.remaining) {
       throw new ApiError(
         409,
-        `Insufficient leave balance: ${relevant.remaining} day(s) remaining, ${days} requested`
+        `Insufficient leave balance: ${relevant.remaining} day(s) available, ${days} requested`
       );
     }
   }
@@ -586,6 +656,98 @@ export async function rejectLeave(actor: Actor, leaveId: string, comment?: strin
   });
 
   return toPublicLeave(leave);
+}
+
+export interface GrantExtraLeaveInput {
+  employeeId: string;
+  leaveType: LeaveType;
+  period: AllocationPeriod;
+  days: number;
+  reason: string;
+  year?: number;
+}
+
+export async function grantExtraLeave(actor: Actor, input: GrantExtraLeaveInput) {
+  const employee = await UserModel.findById(input.employeeId);
+  if (!employee) throw new ApiError(404, "Employee not found");
+
+  const year = input.year ?? new Date().getFullYear();
+
+  let balance = await LeaveBalanceModel.findOne({ employee: input.employeeId, year });
+  if (!balance) {
+    balance = new LeaveBalanceModel({ employee: input.employeeId, year });
+  }
+
+  if (input.leaveType === LEAVE_TYPES.SICK) {
+    if (input.period === ALLOCATION_PERIOD.H1) balance.sickExtraH1 += input.days;
+    else balance.sickExtraH2 += input.days;
+  } else if (input.leaveType === LEAVE_TYPES.CASUAL_PAID) {
+    if (input.period === ALLOCATION_PERIOD.H1) balance.casualPaidExtraH1 += input.days;
+    else balance.casualPaidExtraH2 += input.days;
+  } else if (input.leaveType === LEAVE_TYPES.ANNUAL) {
+    balance.annualExtra += input.days;
+  } else {
+    throw new ApiError(400, "Cannot grant extra leaves for Unpaid Leave");
+  }
+
+  await balance.save();
+
+  const allocation = await LeaveAllocationModel.create({
+    employee: input.employeeId,
+    leaveType: input.leaveType,
+    period: input.period,
+    year,
+    days: input.days,
+    reason: input.reason,
+    grantedBy: actor.id,
+  });
+
+  await recordActivity({
+    actor,
+    action: "LEAVE_EXTRA_GRANTED",
+    targetType: "LeaveAllocation",
+    targetId: toId(allocation),
+    metadata: {
+      employeeId: input.employeeId,
+      leaveType: input.leaveType,
+      days: input.days,
+      reason: input.reason,
+    },
+  });
+
+  return allocation;
+}
+
+export async function listLeaveAllocations(query?: { employeeId?: string; year?: number }) {
+  const filter: Record<string, unknown> = {};
+  if (query?.employeeId) filter.employee = query.employeeId;
+  if (query?.year) filter.year = query.year;
+
+  const allocations = await LeaveAllocationModel.find(filter)
+    .populate("employee", "employeeId fullName profilePhoto department designation")
+    .populate("grantedBy", "fullName")
+    .sort({ createdAt: -1 });
+
+  return allocations.map((a) => {
+    const emp = a.employee as unknown as { _id: unknown; employeeId: string; fullName: string; profilePhoto?: string };
+    const admin = a.grantedBy as unknown as { fullName: string };
+    return {
+      id: toId(a),
+      employee: {
+        id: String(emp._id),
+        employeeId: emp.employeeId,
+        fullName: emp.fullName,
+        profilePhoto: emp.profilePhoto ?? null,
+      },
+      leaveType: a.leaveType,
+      period: a.period,
+      year: a.year,
+      days: a.days,
+      reason: a.reason,
+      grantedBy: admin?.fullName ?? "System Admin",
+      createdAt: a.createdAt,
+    };
+  });
 }
 
 export { resolveViewableEmployeeId };

@@ -103,6 +103,15 @@ export function ApplyLeaveDialog() {
           onSubmit={handleSubmit((values) => mutation.mutate(values))}
           className="flex flex-col gap-4"
         >
+          <div className="rounded-md bg-muted/60 p-3 text-xs text-muted-foreground space-y-1">
+            <p className="font-medium text-foreground">Leave Policy Reminders:</p>
+            <ul className="list-disc pl-4 space-y-0.5">
+              <li>Paid leaves (Casual/Sick) are capped at <strong>max 2 working days</strong> per request. Leaves &gt; 2 days must be applied as <strong>Unpaid Leave</strong>.</li>
+              <li>Casual leave can be taken at most <strong>once per calendar month</strong>.</li>
+              <li>Pending requests immediately reserve leave days from your balance.</li>
+            </ul>
+          </div>
+
           {serverError && (
             <Alert variant="destructive">
               <AlertDescription>{serverError}</AlertDescription>

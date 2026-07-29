@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { RoleGuard } from "@/components/layout/role-guard";
 import { ROLES } from "@/constants/roles";
+import { ROUTES } from "@/constants/routes";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import * as reportService from "@/services/report.service";
 import { ReportHeader } from "@/features/reports/components/report-header";
@@ -15,10 +17,6 @@ import {
   MonthlySummaryFilterValues,
 } from "@/features/reports/components/monthly-summary-filters";
 import { MonthlySummaryTable } from "@/features/reports/components/monthly-summary-table";
-import {
-  DailyDetailEmployee,
-  EmployeeDailyDetailDialog,
-} from "@/features/reports/components/employee-daily-detail-dialog";
 import { AdminCorrectionsPanel } from "@/features/attendance/components/admin-corrections-panel";
 
 function currentYearMonth() {
@@ -35,12 +33,12 @@ export default function MonthlySummaryReportPage() {
 }
 
 function MonthlySummaryReportPageContent() {
+  const router = useRouter();
   const [filters, setFilters] = useState<MonthlySummaryFilterValues>({
     search: "",
     ...currentYearMonth(),
   });
   const [page, setPage] = useState(1);
-  const [selectedEmployee, setSelectedEmployee] = useState<DailyDetailEmployee | null>(null);
   const debouncedSearch = useDebouncedValue(filters.search);
 
   const { data, isLoading, isError } = useQuery({
@@ -84,16 +82,7 @@ function MonthlySummaryReportPageContent() {
         isError={isError}
         pagination={data?.pagination}
         onPageChange={setPage}
-        onRowClick={(row) =>
-          setSelectedEmployee({ id: row.id, employeeId: row.employeeId, fullName: row.fullName })
-        }
-      />
-
-      <EmployeeDailyDetailDialog
-        employee={selectedEmployee}
-        year={filters.year}
-        month={filters.month}
-        onClose={() => setSelectedEmployee(null)}
+        onRowClick={(row) => router.push(ROUTES.EMPLOYEE_DETAIL(row.id))}
       />
 
       <AdminCorrectionsPanel />

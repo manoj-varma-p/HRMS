@@ -53,4 +53,18 @@ async function reject(req: Request, res: Response): Promise<void> {
   sendSuccess(res, { leave }, "Leave rejected");
 }
 
-export { apply, mine, adminList, balance, cancel, approve, reject };
+async function grantExtra(req: Request, res: Response): Promise<void> {
+  const allocation = await leaveService.grantExtraLeave(req.user!, req.body);
+  sendSuccess(res, { allocation }, "Extra leave granted successfully", 201);
+}
+
+async function listAllocations(req: Request, res: Response): Promise<void> {
+  const query = req.query as { employeeId?: string; year?: string };
+  const allocations = await leaveService.listLeaveAllocations({
+    employeeId: query.employeeId,
+    year: query.year ? Number(query.year) : undefined,
+  });
+  sendSuccess(res, { allocations });
+}
+
+export { apply, mine, adminList, balance, cancel, approve, reject, grantExtra, listAllocations };

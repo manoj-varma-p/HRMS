@@ -78,3 +78,42 @@ export function rejectLeave(id: string, comment?: string) {
     body: JSON.stringify({ comment }),
   });
 }
+
+export interface GrantExtraLeaveInput {
+  employeeId: string;
+  leaveType: string;
+  period: string;
+  days: number;
+  reason: string;
+  year?: number;
+}
+
+export interface LeaveAllocationItem {
+  id: string;
+  employee: {
+    id: string;
+    employeeId: string;
+    fullName: string;
+    profilePhoto: string | null;
+  };
+  leaveType: string;
+  period: string;
+  year: number;
+  days: number;
+  reason: string;
+  grantedBy: string;
+  createdAt: string;
+}
+
+export function grantExtraLeave(input: GrantExtraLeaveInput) {
+  return apiFetch<ApiSuccess<{ allocation: LeaveAllocationItem }>>("/api/leave/allocations", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function listLeaveAllocations(params: { employeeId?: string; year?: number } = {}) {
+  return apiFetch<ApiSuccess<{ allocations: LeaveAllocationItem[] }>>(
+    `/api/leave/allocations${toQueryString({ ...params })}`
+  );
+}

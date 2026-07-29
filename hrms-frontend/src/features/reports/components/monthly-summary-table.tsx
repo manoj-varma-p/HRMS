@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarRange } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatWorkedHours } from "@/lib/format-ist";
@@ -9,6 +10,15 @@ import { ReportPagination } from "./report-pagination";
 import { EmptyReportState } from "./empty-report-state";
 
 const COLUMN_COUNT = 10;
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
 export function MonthlySummaryTable({
   rows,
@@ -84,9 +94,15 @@ export function MonthlySummaryTable({
                   onClick={() => onRowClick?.(row)}
                 >
                   <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{row.fullName}</span>
-                      <span className="text-xs text-muted-foreground">{row.employeeId}</span>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={row.profilePhoto ?? undefined} />
+                        <AvatarFallback className="text-xs">{getInitials(row.fullName)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{row.fullName}</span>
+                        <span className="text-xs text-muted-foreground">{row.employeeId}</span>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>{row.department ?? "—"}</TableCell>

@@ -33,6 +33,8 @@ function toPublicUser(user: IUser): PublicUser {
     id: user._id.toString(),
     employeeId: user.employeeId,
     email: user.email,
+    fullName: user.fullName,
+    profilePhoto: user.profilePhoto ?? null,
     role: user.role,
     status: user.status,
     mustChangePassword: user.mustChangePassword,

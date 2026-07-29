@@ -71,6 +71,15 @@ export interface MonthlySummaryReportRow {
   id: string;
   employeeId: string;
   fullName: string;
+  email?: string;
+  phone?: string;
+  joiningDate?: string;
+  role?: Role;
+  status?: EmployeeStatus;
+  salary?: number | null;
+  bloodGroup?: string | null;
+  profilePhoto?: string | null;
+  employmentType?: string;
   department: string | null;
   designation: string | null;
   summary: MonthSummary;

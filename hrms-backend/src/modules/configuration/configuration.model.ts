@@ -22,6 +22,10 @@ export interface IOfficeSettings {
   gracePeriodMinutes: number;
   workingDays: number[]; // 0=Sun..6=Sat
   weekendDays: number[]; // 0=Sun..6=Sat
+  geofenceEnabled: boolean;
+  latitude: number | null;
+  longitude: number | null;
+  allowedRadiusMeters: number;
 }
 
 export interface ILeavePolicy {
@@ -136,6 +140,10 @@ const officeSettingsSchema = new Schema<IOfficeSettings>(
     gracePeriodMinutes: { type: Number, required: true, default: 15 },
     workingDays: { type: [Number], required: true, default: [1, 2, 3, 4, 5, 6] },
     weekendDays: { type: [Number], required: true, default: [0] },
+    geofenceEnabled: { type: Boolean, required: true, default: true },
+    latitude: { type: Number, default: 17.4502143 },
+    longitude: { type: Number, default: 78.3911328 },
+    allowedRadiusMeters: { type: Number, required: true, default: 100 },
   },
   { _id: false }
 );

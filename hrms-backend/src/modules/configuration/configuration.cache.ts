@@ -108,6 +108,10 @@ export function getNotificationSettings() {
   return getCachedConfig().notificationSettings;
 }
 
+export function getOfficeSettings() {
+  return getCachedConfig().officeSettings;
+}
+
 export function getCompanyProfile() {
   return getCachedConfig().companyProfile;
 }

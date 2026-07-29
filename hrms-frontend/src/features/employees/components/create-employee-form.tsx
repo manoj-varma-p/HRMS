@@ -35,12 +35,15 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const schema = z.object({
+  employeeId: z.string().trim().optional(),
   fullName: z.string().trim().min(2, "Full name must be at least 2 characters"),
   email: z.string().trim().email("Enter a valid email address"),
   phone: z.string().trim().regex(phoneRegex, "Enter a valid phone number"),
+  bloodGroup: z.string().trim().optional(),
   department: z.string().min(1, "Select a department"),
   designation: z.string().min(1, "Select a designation"),
   joiningDate: z.string().min(1, "Select a joining date"),
+  salary: z.string().optional(),
   role: z.string().min(1, "Select a role"),
   status: z.string().min(1, "Select a status"),
 });
@@ -72,7 +75,11 @@ export function CreateEmployeeForm({ onCreated }: CreateEmployeeFormProps) {
   async function onSubmit(values: FormValues) {
     setServerError(null);
     try {
-      const res = await employeeService.createEmployee(values);
+      const payload = {
+        ...values,
+        salary: values.salary !== "" && values.salary !== undefined ? Number(values.salary) : undefined,
+      };
+      const res = await employeeService.createEmployee(payload as any);
       onCreated({
         employeeName: res.data.employee.fullName,
         employeeId: res.data.employee.employeeId,
@@ -92,6 +99,14 @@ export function CreateEmployeeForm({ onCreated }: CreateEmployeeFormProps) {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="employeeId">Employee ID (Optional)</Label>
+          <Input id="employeeId" placeholder="Auto-generated if left blank" disabled={isSubmitting} {...register("employeeId")} />
+          {errors.employeeId && (
+            <p className="text-sm text-destructive">{errors.employeeId.message}</p>
+          )}
+        </div>
+
         <div className="flex flex-col gap-2">
           <Label htmlFor="fullName">Full Name</Label>
           <Input id="fullName" disabled={isSubmitting} {...register("fullName")} />
@@ -113,6 +128,22 @@ export function CreateEmployeeForm({ onCreated }: CreateEmployeeFormProps) {
           <Input id="phone" disabled={isSubmitting} {...register("phone")} />
           {errors.phone && (
             <p className="text-sm text-destructive">{errors.phone.message}</p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="bloodGroup">Blood Group (Optional)</Label>
+          <Input id="bloodGroup" placeholder="e.g. O+, A+, B+, AB-" disabled={isSubmitting} {...register("bloodGroup")} />
+          {errors.bloodGroup && (
+            <p className="text-sm text-destructive">{errors.bloodGroup.message}</p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="salary">Salary (Optional)</Label>
+          <Input id="salary" type="number" placeholder="e.g. 50000" disabled={isSubmitting} {...register("salary")} />
+          {errors.salary && (
+            <p className="text-sm text-destructive">{errors.salary.message}</p>
           )}
         </div>
 

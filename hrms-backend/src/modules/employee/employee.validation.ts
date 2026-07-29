@@ -48,6 +48,7 @@ export const listEmployeesSchema = z.object({
 
 export const createEmployeeSchema = z.object({
   body: z.object({
+    employeeId: z.string().trim().optional(),
     fullName: z.string().trim().min(2, "Full name must be at least 2 characters"),
     email: z.string().trim().email("Enter a valid email address"),
     phone,
@@ -56,6 +57,8 @@ export const createEmployeeSchema = z.object({
     joiningDate: z.coerce.date(),
     dateOfBirth: optionalDate,
     role: z.enum([ROLES.EMPLOYEE, ROLES.ADMIN]),
+    salary: z.coerce.number().min(0).optional().nullable(),
+    bloodGroup: z.string().trim().max(10).optional().nullable(),
     status: z
       .enum(Object.values(EMPLOYEE_STATUS) as [string, ...string[]])
       .optional()
@@ -66,12 +69,16 @@ export const createEmployeeSchema = z.object({
 export const updateEmployeeSchema = z.object({
   params: z.object({ id: objectId }),
   body: z.object({
+    employeeId: z.string().trim().min(1).optional(),
     fullName: z.string().trim().min(2).optional(),
     phone: phone.optional(),
     department: objectId.optional(),
     designation: objectId.optional(),
     dateOfBirth: optionalDate,
     gracePeriodOverrideMinutes: optionalGraceMinutes,
+    salary: z.coerce.number().min(0).optional().nullable(),
+    bloodGroup: z.string().trim().max(10).optional().nullable(),
+    profilePhoto: z.string().trim().optional().nullable(),
     // SUPER_ADMIN not assignable here, same restriction as creation.
     role: z.enum([ROLES.EMPLOYEE, ROLES.ADMIN]).optional(),
     status: z
@@ -89,7 +96,7 @@ export const updateProfileSchema = z.object({
     phone: phone.optional(),
     dateOfBirth: optionalDate,
     address: z.string().trim().max(500).optional(),
-    profilePhoto: z.string().trim().url().optional(),
+    profilePhoto: z.string().trim().optional().nullable(),
     emergencyContact: z
       .object({
         name: z.string().trim().min(2),

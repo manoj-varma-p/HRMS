@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { LogOut, Menu, User } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -70,6 +70,7 @@ export function Topbar() {
             render={<Button variant="ghost" size="icon" className="rounded-full" />}
           >
             <Avatar className="h-8 w-8">
+              <AvatarImage src={user?.profilePhoto ?? undefined} />
               <AvatarFallback>
                 {user ? getInitials(user.email) : "U"}
               </AvatarFallback>

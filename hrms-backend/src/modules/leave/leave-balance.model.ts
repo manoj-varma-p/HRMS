@@ -12,8 +12,12 @@ export interface ILeaveBalance extends Document {
   // down H1's quota.
   sickUsedH1: number;
   sickUsedH2: number;
+  sickExtraH1: number;
+  sickExtraH2: number;
   casualPaidUsedH1: number;
   casualPaidUsedH2: number;
+  casualPaidExtraH1: number;
+  casualPaidExtraH2: number;
   // Annual Leave is a real stored balance (unlike Sick/Casual, whose
   // *quota* is fixed by policy) — it's credited incrementally, flat
   // +policy.annualAccrualPerMonth for every fully-completed calendar month
@@ -23,6 +27,7 @@ export interface ILeaveBalance extends Document {
   // reads/writes never double-credit the same month. See leave.service.ts.
   annualAccrued: number;
   annualAccruedThroughMonth: number;
+  annualExtra: number;
   annualUsed: number;
   unpaidUsed: number;
   createdAt: Date;
@@ -35,10 +40,15 @@ const leaveBalanceSchema = new Schema<ILeaveBalance>(
     year: { type: Number, required: true },
     sickUsedH1: { type: Number, required: true, default: 0 },
     sickUsedH2: { type: Number, required: true, default: 0 },
+    sickExtraH1: { type: Number, required: true, default: 0 },
+    sickExtraH2: { type: Number, required: true, default: 0 },
     casualPaidUsedH1: { type: Number, required: true, default: 0 },
     casualPaidUsedH2: { type: Number, required: true, default: 0 },
+    casualPaidExtraH1: { type: Number, required: true, default: 0 },
+    casualPaidExtraH2: { type: Number, required: true, default: 0 },
     annualAccrued: { type: Number, required: true, default: 0 },
     annualAccruedThroughMonth: { type: Number, required: true, default: 0 },
+    annualExtra: { type: Number, required: true, default: 0 },
     annualUsed: { type: Number, required: true, default: 0 },
     unpaidUsed: { type: Number, required: true, default: 0 },
   },

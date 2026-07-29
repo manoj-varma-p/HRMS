@@ -7,6 +7,7 @@ import {
   Clock,
   CalendarHeart,
   CalendarDays,
+  CalendarPlus,
   Bell,
   Mail,
   ShieldCheck,
@@ -84,6 +85,12 @@ const CATEGORIES = [
     description: "Spreadsheet-style admin data entry for Adobe license tracking.",
     href: ROUTES.ADMINISTRATION_ADOBE_LICENSES,
     icon: FileSpreadsheet,
+  },
+  {
+    title: "Leave Management",
+    description: "Grant extra leave allocations (Sick, Casual, Annual) to employees.",
+    href: ROUTES.ADMINISTRATION_LEAVE_MANAGEMENT,
+    icon: CalendarPlus,
   },
 ];
 

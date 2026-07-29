@@ -33,6 +33,7 @@ export const ROUTES = {
   ADMINISTRATION_DESIGNATIONS: "/administration/designations",
   ADMINISTRATION_HOLIDAYS: "/administration/holidays",
   ADMINISTRATION_ADOBE_LICENSES: "/administration/adobe-licenses",
+  ADMINISTRATION_LEAVE_MANAGEMENT: "/administration/leave-management",
   LOGIN: "/login",
   FORGOT_PASSWORD: "/forgot-password",
   RESET_PASSWORD: "/reset-password",

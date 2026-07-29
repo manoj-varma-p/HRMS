@@ -44,6 +44,8 @@ export interface IUser extends Document {
   // employees don't accrue Annual Leave at all.
   employmentType: EmploymentType;
   permanentSince: Date | null;
+  salary?: number | null;
+  bloodGroup?: string | null;
 
   createdAt: Date;
   updatedAt: Date;
@@ -106,6 +108,8 @@ const userSchema = new Schema<IUser>(
       default: EMPLOYMENT_TYPE.PROBATION,
     },
     permanentSince: { type: Date, default: null },
+    salary: { type: Number, default: null },
+    bloodGroup: { type: String, default: null, trim: true },
   },
   { timestamps: true }
 );

@@ -7,6 +7,7 @@ import {
   adminListLeavesSchema,
   applyLeaveSchema,
   balanceQuerySchema,
+  grantExtraLeaveSchema,
   leaveIdParamSchema,
   listLeavesSchema,
   reviewLeaveSchema,
@@ -28,6 +29,8 @@ router.patch(
 );
 
 router.get("/", manage, validate(adminListLeavesSchema), leaveController.adminList);
+router.post("/allocations", manage, validate(grantExtraLeaveSchema), leaveController.grantExtra);
+router.get("/allocations", manage, leaveController.listAllocations);
 router.patch(
   "/:id/approve",
   manage,

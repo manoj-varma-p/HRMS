@@ -68,6 +68,8 @@ function toPublicEmployee(user: IUser) {
     gracePeriodOverrideMinutes: user.gracePeriodOverrideMinutes,
     employmentType: user.employmentType,
     permanentSince: user.permanentSince,
+    salary: user.salary ?? null,
+    bloodGroup: user.bloodGroup ?? null,
     createdAt: user.createdAt,
   };
 }
@@ -167,6 +169,7 @@ async function assertReferenceDataExists(departmentId: string, designationId: st
 }
 
 interface CreateEmployeeInput {
+  employeeId?: string;
   fullName: string;
   email: string;
   phone: string;
@@ -176,6 +179,8 @@ interface CreateEmployeeInput {
   dateOfBirth?: Date;
   role: Role;
   status: EmployeeStatus;
+  salary?: number | null;
+  bloodGroup?: string | null;
 }
 
 // Atomic (Mongo's standard findOneAndUpdate + $inc counter pattern), so
@@ -219,9 +224,19 @@ export async function createEmployee(actor: Actor, input: CreateEmployeeInput) {
     throw new ApiError(409, `Email "${input.email}" is already in use`);
   }
 
+  let employeeId: string;
+  if (input.employeeId && input.employeeId.trim()) {
+    employeeId = input.employeeId.trim();
+    const existingByEmpId = await UserModel.findOne({ employeeId });
+    if (existingByEmpId) {
+      throw new ApiError(409, `Employee ID "${employeeId}" is already in use`);
+    }
+  } else {
+    employeeId = await getNextEmployeeId();
+  }
+
   await assertReferenceDataExists(input.department, input.designation);
 
-  const employeeId = await getNextEmployeeId();
   const tempPassword = generateTempPassword();
   const passwordHash = await hashSecret(tempPassword);
 
@@ -238,6 +253,8 @@ export async function createEmployee(actor: Actor, input: CreateEmployeeInput) {
       dateOfBirth: input.dateOfBirth ?? null,
       role: input.role,
       status: input.status,
+      salary: input.salary ?? null,
+      bloodGroup: input.bloodGroup ?? null,
       passwordHash,
       mustChangePassword: true,
     });
@@ -312,6 +329,7 @@ export async function getEmployeeById(actor: Actor, id: string) {
 }
 
 interface UpdateEmployeeInput {
+  employeeId?: string;
   fullName?: string;
   phone?: string;
   department?: string;
@@ -320,6 +338,8 @@ interface UpdateEmployeeInput {
   gracePeriodOverrideMinutes?: number | null;
   role?: Role;
   status?: EmployeeStatus;
+  salary?: number | null;
+  bloodGroup?: string | null;
 }
 
 export async function updateEmployee(
@@ -357,6 +377,13 @@ export async function updateEmployee(
 
   const previousStatus = user.status;
 
+  if (input.employeeId !== undefined && input.employeeId !== user.employeeId) {
+    const existing = await UserModel.findOne({ employeeId: input.employeeId });
+    if (existing) {
+      throw new ApiError(409, `Employee ID "${input.employeeId}" is already in use`);
+    }
+    user.employeeId = input.employeeId;
+  }
   if (input.fullName !== undefined) user.fullName = input.fullName;
   if (input.phone !== undefined) user.phone = input.phone;
   if (input.department !== undefined) user.department = input.department as never;
@@ -365,6 +392,8 @@ export async function updateEmployee(
   if (input.gracePeriodOverrideMinutes !== undefined) {
     user.gracePeriodOverrideMinutes = input.gracePeriodOverrideMinutes;
   }
+  if (input.salary !== undefined) user.salary = input.salary;
+  if (input.bloodGroup !== undefined) user.bloodGroup = input.bloodGroup;
   if (input.role !== undefined) user.role = input.role;
   if (input.status !== undefined) user.status = input.status;
 

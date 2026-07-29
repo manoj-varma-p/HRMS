@@ -23,9 +23,17 @@ export function createApp(): Application {
   }
 
   app.use(helmet());
+  const devOrigins = ["http://localhost:3000", "http://localhost:3001"];
+  const origins = Array.from(new Set([env.clientOrigin, ...devOrigins]));
+
   app.use(
     cors({
-      origin: env.clientOrigin,
+      origin: (origin, callback) => {
+        if (!origin || origins.includes(origin)) {
+          return callback(null, true);
+        }
+        return callback(null, false);
+      },
       credentials: true,
     })
   );

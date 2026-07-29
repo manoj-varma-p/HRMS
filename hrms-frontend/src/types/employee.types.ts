@@ -43,6 +43,8 @@ export interface Employee {
   gracePeriodOverrideMinutes: number | null;
   employmentType: EmploymentType;
   permanentSince: string | null;
+  salary?: number | null;
+  bloodGroup?: string | null;
   createdAt: string;
 }
 

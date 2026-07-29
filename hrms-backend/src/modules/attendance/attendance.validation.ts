@@ -29,3 +29,12 @@ export const adminListQuerySchema = z.object({
 export const exportQuerySchema = z.object({
   query: adminListQuerySchema.shape.query.omit({ page: true, limit: true }),
 });
+
+export const checkInSchema = z.object({
+  body: z.object({
+    latitude: z.coerce.number().min(-90).max(90).optional(),
+    longitude: z.coerce.number().min(-180).max(180).optional(),
+  }).optional(),
+});
+
+export const checkOutSchema = checkInSchema;

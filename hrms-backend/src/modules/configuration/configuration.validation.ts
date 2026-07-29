@@ -32,6 +32,10 @@ export const updateOfficeSettingsSchema = z.object({
     gracePeriodMinutes: z.coerce.number().int().min(0).max(120).optional(),
     workingDays: z.array(weekday).min(1).max(7).optional(),
     weekendDays: z.array(weekday).min(0).max(7).optional(),
+    geofenceEnabled: z.coerce.boolean().optional(),
+    latitude: z.coerce.number().min(-90).max(90).nullable().optional(),
+    longitude: z.coerce.number().min(-180).max(180).nullable().optional(),
+    allowedRadiusMeters: z.coerce.number().min(10).max(10000).optional(),
   }),
 });
 

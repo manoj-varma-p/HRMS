@@ -42,6 +42,7 @@ export function listAssignableEmployees() {
 }
 
 export interface CreateEmployeeInput {
+  employeeId?: string;
   fullName: string;
   email: string;
   phone: string;
@@ -50,6 +51,8 @@ export interface CreateEmployeeInput {
   joiningDate: string;
   role: string;
   status?: string;
+  salary?: number | null;
+  bloodGroup?: string | null;
 }
 
 export function createEmployee(input: CreateEmployeeInput) {
@@ -66,6 +69,7 @@ export function getEmployee(id: string) {
 }
 
 export interface UpdateEmployeeInput {
+  employeeId?: string;
   fullName?: string;
   phone?: string;
   department?: string;
@@ -74,6 +78,9 @@ export interface UpdateEmployeeInput {
   gracePeriodOverrideMinutes?: number | null;
   role?: string;
   status?: string;
+  salary?: number | null;
+  bloodGroup?: string | null;
+  profilePhoto?: string | null;
 }
 
 export function updateEmployee(id: string, input: UpdateEmployeeInput) {

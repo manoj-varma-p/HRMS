@@ -5,6 +5,8 @@ export interface PublicUser {
   id: string;
   employeeId: string;
   email: string;
+  fullName: string;
+  profilePhoto?: string | null;
   role: Role;
   status: EmployeeStatus;
   mustChangePassword: boolean;

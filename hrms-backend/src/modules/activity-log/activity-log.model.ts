@@ -12,6 +12,7 @@ export interface IActivityLog extends Document {
     | "Attendance"
     | "AttendanceCorrection"
     | "LeaveRequest"
+    | "LeaveAllocation"
     | "Holiday"
     | "Report"
     | "Announcement"
@@ -37,6 +38,7 @@ const activityLogSchema = new Schema<IActivityLog>(
         "Attendance",
         "AttendanceCorrection",
         "LeaveRequest",
+        "LeaveAllocation",
         "Holiday",
         "Report",
         "Announcement",
