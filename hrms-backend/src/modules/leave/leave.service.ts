@@ -34,6 +34,7 @@ const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
   CASUAL_PAID: "Casual",
   ANNUAL: "Annual",
   UNPAID: "Unpaid",
+  COMP_OFF: "Comp Off",
 };
 
 const APPLY_ALLOWED_STATUSES: string[] = [
@@ -176,7 +177,7 @@ export async function getLeaveBalance(employeeId: string, year: number) {
 
   let pendingSickH1 = 0, pendingSickH2 = 0;
   let pendingCasualH1 = 0, pendingCasualH2 = 0;
-  let pendingAnnual = 0, pendingUnpaid = 0;
+  let pendingAnnual = 0, pendingUnpaid = 0, pendingCompOff = 0;
 
   for (const req of pendingRequests) {
     const half = leaveHalf(req.startDate);
@@ -190,6 +191,8 @@ export async function getLeaveBalance(employeeId: string, year: number) {
       pendingAnnual += req.days;
     } else if (req.leaveType === LEAVE_TYPES.UNPAID) {
       pendingUnpaid += req.days;
+    } else if (req.leaveType === LEAVE_TYPES.COMP_OFF) {
+      pendingCompOff += req.days;
     }
   }
 
@@ -226,6 +229,12 @@ export async function getLeaveBalance(employeeId: string, year: number) {
       remaining: Math.max(0, Math.round((annualAccruedTotal - balance.annualUsed - pendingAnnual) * 100) / 100),
     },
     unpaid: { used: balance.unpaidUsed, pending: pendingUnpaid, total: null, remaining: null },
+    compOff: {
+      granted: balance.compOffGranted || 0,
+      used: balance.compOffUsed || 0,
+      pending: pendingCompOff,
+      remaining: Math.max(0, (balance.compOffGranted || 0) - (balance.compOffUsed || 0) - pendingCompOff),
+    },
   };
 }
 
@@ -338,7 +347,9 @@ export async function applyLeave(actor: Actor, input: ApplyLeaveInput) {
         ? balance.sick[half]
         : input.leaveType === LEAVE_TYPES.CASUAL_PAID
           ? balance.casualPaid[half]
-          : balance.annual;
+          : input.leaveType === LEAVE_TYPES.COMP_OFF
+            ? balance.compOff
+            : balance.annual;
     if (relevant.remaining !== null && days > relevant.remaining) {
       throw new ApiError(
         409,
@@ -526,7 +537,8 @@ export async function approveLeave(actor: Actor, leaveId: string, comment?: stri
         | "casualPaidUsedH1"
         | "casualPaidUsedH2"
         | "annualUsed"
-        | "unpaidUsed";
+        | "unpaidUsed"
+        | "compOffUsed";
       // null means "unlimited, no capacity check" (Unpaid Leave only).
       let quota: number | null = null;
 
@@ -566,6 +578,9 @@ export async function approveLeave(actor: Actor, leaveId: string, comment?: stri
           );
         }
         quota = balance.annualAccrued;
+      } else if (leave.leaveType === LEAVE_TYPES.COMP_OFF) {
+        field = "compOffUsed";
+        quota = balance.compOffGranted;
       } else {
         field = "unpaidUsed";
       }
@@ -666,10 +681,10 @@ export async function rejectLeave(actor: Actor, leaveId: string, comment?: strin
 
 export interface GrantExtraLeaveInput {
   employeeId: string;
-  leaveType: LeaveType;
-  period: AllocationPeriod;
   days: number;
   reason: string;
+  leaveType?: LeaveType;
+  period?: AllocationPeriod;
   year?: number;
 }
 
@@ -684,24 +699,27 @@ export async function grantExtraLeave(actor: Actor, input: GrantExtraLeaveInput)
     balance = new LeaveBalanceModel({ employee: input.employeeId, year });
   }
 
-  if (input.leaveType === LEAVE_TYPES.SICK) {
-    if (input.period === ALLOCATION_PERIOD.H1) balance.sickExtraH1 += input.days;
+  const leaveType = input.leaveType ?? LEAVE_TYPES.COMP_OFF;
+  const period = input.period ?? ALLOCATION_PERIOD.ANNUAL;
+
+  if (leaveType === LEAVE_TYPES.COMP_OFF) {
+    balance.compOffGranted = (balance.compOffGranted || 0) + input.days;
+  } else if (leaveType === LEAVE_TYPES.SICK) {
+    if (period === ALLOCATION_PERIOD.H1) balance.sickExtraH1 += input.days;
     else balance.sickExtraH2 += input.days;
-  } else if (input.leaveType === LEAVE_TYPES.CASUAL_PAID) {
-    if (input.period === ALLOCATION_PERIOD.H1) balance.casualPaidExtraH1 += input.days;
+  } else if (leaveType === LEAVE_TYPES.CASUAL_PAID) {
+    if (period === ALLOCATION_PERIOD.H1) balance.casualPaidExtraH1 += input.days;
     else balance.casualPaidExtraH2 += input.days;
-  } else if (input.leaveType === LEAVE_TYPES.ANNUAL) {
+  } else if (leaveType === LEAVE_TYPES.ANNUAL) {
     balance.annualExtra += input.days;
-  } else {
-    throw new ApiError(400, "Cannot grant extra leaves for Unpaid Leave");
   }
 
   await balance.save();
 
   const allocation = await LeaveAllocationModel.create({
     employee: input.employeeId,
-    leaveType: input.leaveType,
-    period: input.period,
+    leaveType,
+    period,
     year,
     days: input.days,
     reason: input.reason,

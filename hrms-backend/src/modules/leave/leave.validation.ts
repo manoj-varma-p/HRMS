@@ -52,10 +52,10 @@ export const reviewLeaveSchema = z.object({
 export const grantExtraLeaveSchema = z.object({
   body: z.object({
     employeeId: objectId,
-    leaveType: z.enum([LEAVE_TYPES.SICK, LEAVE_TYPES.CASUAL_PAID, LEAVE_TYPES.ANNUAL]),
-    period: z.enum(["H1", "H2", "ANNUAL"]),
     days: z.coerce.number().positive("Days must be greater than 0"),
     reason: z.string().trim().min(3, "Reason required"),
+    leaveType: z.enum(Object.values(LEAVE_TYPES) as [string, ...string[]]).optional(),
+    period: z.enum(["H1", "H2", "ANNUAL"]).optional(),
     year: z.coerce.number().int().min(2000).max(2100).optional(),
   }),
 });

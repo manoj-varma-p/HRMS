@@ -25,13 +25,13 @@ const leaveAllocationSchema = new Schema<ILeaveAllocation>(
     employee: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     leaveType: {
       type: String,
-      enum: [LEAVE_TYPES.SICK, LEAVE_TYPES.CASUAL_PAID, LEAVE_TYPES.ANNUAL],
-      required: true,
+      enum: Object.values(LEAVE_TYPES),
+      default: LEAVE_TYPES.COMP_OFF,
     },
     period: {
       type: String,
       enum: Object.values(ALLOCATION_PERIOD),
-      required: true,
+      default: ALLOCATION_PERIOD.ANNUAL,
     },
     year: { type: Number, required: true },
     days: { type: Number, required: true, min: 0.5 },

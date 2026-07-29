@@ -19,4 +19,5 @@ export const LEAVE_TYPE_LABELS: Record<string, string> = {
   CASUAL_PAID: "Casual/Paid Leave",
   ANNUAL: "Annual Leave",
   UNPAID: "Unpaid Leave",
+  COMP_OFF: "Comp Off Leave",
 };

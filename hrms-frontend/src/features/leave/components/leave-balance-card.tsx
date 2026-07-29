@@ -144,6 +144,12 @@ export function LeaveBalanceCard({ employeeId }: LeaveBalanceCardProps) {
               colorClass="bg-violet-500"
             />
             <BalanceRow
+              label="Comp Off Leave"
+              used={data?.compOff?.used ?? 0}
+              total={data?.compOff?.granted ?? 0}
+              colorClass="bg-amber-500"
+            />
+            <BalanceRow
               label="Unpaid Leave"
               used={data?.unpaid.used ?? 0}
               total={null}

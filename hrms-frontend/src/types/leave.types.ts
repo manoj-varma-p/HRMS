@@ -28,6 +28,12 @@ export interface LeaveBalance {
   };
   annual: AnnualLeaveBalanceBucket;
   unpaid: LeaveBalanceBucket;
+  compOff?: {
+    granted: number;
+    used: number;
+    pending: number;
+    remaining: number;
+  };
 }
 
 export interface LeaveEmployeeRef {

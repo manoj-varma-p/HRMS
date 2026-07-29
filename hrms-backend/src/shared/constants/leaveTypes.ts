@@ -3,6 +3,7 @@ export const LEAVE_TYPES = {
   CASUAL_PAID: "CASUAL_PAID",
   ANNUAL: "ANNUAL",
   UNPAID: "UNPAID",
+  COMP_OFF: "COMP_OFF",
 } as const;
 
 export type LeaveType = (typeof LEAVE_TYPES)[keyof typeof LEAVE_TYPES];

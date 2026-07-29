@@ -87,8 +87,8 @@ const CATEGORIES = [
     icon: FileSpreadsheet,
   },
   {
-    title: "Leave Management",
-    description: "Grant extra leave allocations (Sick, Casual, Annual) to employees.",
+    title: "Comp Off Leaves",
+    description: "Grant Comp Off leaves to employees and track allocation history.",
     href: ROUTES.ADMINISTRATION_LEAVE_MANAGEMENT,
     icon: CalendarPlus,
   },

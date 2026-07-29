@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { CalendarPlus, ShieldCheck, User } from "lucide-react";
 import { AdministrationPageShell } from "@/features/administration/components/administration-page-shell";
 import { GrantExtraLeaveDialog } from "@/features/leave/components/grant-extra-leave-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,8 +25,8 @@ export default function AdministrationLeaveManagementPage() {
 
   return (
     <AdministrationPageShell
-      title="Leave Management"
-      description="Grant extra leave allocations to employees and review history logs."
+      title="Comp Off Leaves"
+      description="Grant Comp Off leaves to employees and track allocation history logs."
     >
       {() => (
         <div className="flex flex-col gap-6">
@@ -38,9 +37,9 @@ export default function AdministrationLeaveManagementPage() {
           <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
             <div className="p-6 border-b flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold tracking-tight">Extra Leave Allocations Log</h2>
+                <h2 className="text-lg font-semibold tracking-tight">Comp Off Allocations Log</h2>
                 <p className="text-xs text-muted-foreground">
-                  History of all extra leave credits granted by system administrators.
+                  History of all Comp Off leave credits granted by system administrators.
                 </p>
               </div>
             </div>
@@ -51,8 +50,8 @@ export default function AdministrationLeaveManagementPage() {
                   <TableRow>
                     <TableHead>Employee</TableHead>
                     <TableHead>Leave Type</TableHead>
-                    <TableHead>Period / Year</TableHead>
-                    <TableHead>Extra Days</TableHead>
+                    <TableHead>Year</TableHead>
+                    <TableHead>Days Granted</TableHead>
                     <TableHead>Reason / Remarks</TableHead>
                     <TableHead>Granted By</TableHead>
                     <TableHead>Date</TableHead>
@@ -74,7 +73,7 @@ export default function AdministrationLeaveManagementPage() {
                   ) : !data || data.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
-                        No extra leave allocations granted yet. Click "Grant Extra Leaves" above to add credits.
+                        No Comp Off leaves granted yet. Click "Grant Comp Off Leaves" above to credit days.
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -123,15 +122,8 @@ export default function AdministrationLeaveManagementPage() {
                             </Badge>
                           </TableCell>
 
-                          <TableCell className="text-sm">
-                            <span className="font-medium">
-                              {item.period === "H1"
-                                ? "H1 (Jan-Jun)"
-                                : item.period === "H2"
-                                  ? "H2 (Jul-Dec)"
-                                  : "Full Year"}
-                            </span>{" "}
-                            ({item.year})
+                          <TableCell className="text-sm font-medium">
+                            {item.year}
                           </TableCell>
 
                           <TableCell>

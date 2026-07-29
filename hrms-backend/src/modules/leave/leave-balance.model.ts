@@ -30,6 +30,8 @@ export interface ILeaveBalance extends Document {
   annualExtra: number;
   annualUsed: number;
   unpaidUsed: number;
+  compOffGranted: number;
+  compOffUsed: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,6 +53,8 @@ const leaveBalanceSchema = new Schema<ILeaveBalance>(
     annualExtra: { type: Number, required: true, default: 0 },
     annualUsed: { type: Number, required: true, default: 0 },
     unpaidUsed: { type: Number, required: true, default: 0 },
+    compOffGranted: { type: Number, required: true, default: 0 },
+    compOffUsed: { type: Number, required: true, default: 0 },
   },
   { timestamps: true }
 );

@@ -81,10 +81,10 @@ export function rejectLeave(id: string, comment?: string) {
 
 export interface GrantExtraLeaveInput {
   employeeId: string;
-  leaveType: string;
-  period: string;
   days: number;
   reason: string;
+  leaveType?: string;
+  period?: string;
   year?: number;
 }
 
