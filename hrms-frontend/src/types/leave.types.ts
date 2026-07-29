@@ -3,6 +3,7 @@ import { LeaveType, LeaveRequestStatus } from "@/constants/leave-types";
 export interface LeaveBalanceBucket {
   used: number;
   total: number | null;
+  baseTotal?: number | null;
   remaining: number | null;
   extra?: number;
 }
@@ -10,6 +11,7 @@ export interface LeaveBalanceBucket {
 export interface AnnualLeaveBalanceBucket {
   used: number;
   accrued: number;
+  baseAccrued?: number;
   remaining: number;
   extra?: number;
 }
