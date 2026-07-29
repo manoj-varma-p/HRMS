@@ -114,8 +114,8 @@ function computeHalfYearBuckets(
   const h2Remaining = Math.max(0, h2Total - usedH2 - pendingH2);
 
   return {
-    half1: { used: usedH1, pending: pendingH1, total: h1Total, remaining: h1Remaining },
-    half2: { used: usedH2, pending: pendingH2, total: h2Total, remaining: h2Remaining },
+    half1: { used: usedH1, pending: pendingH1, total: h1Total, remaining: h1Remaining, extra: extraH1 },
+    half2: { used: usedH2, pending: pendingH2, total: h2Total, remaining: h2Remaining, extra: extraH2 },
   };
 }
 
@@ -217,6 +217,7 @@ export async function getLeaveBalance(employeeId: string, year: number) {
       used: balance.annualUsed,
       pending: pendingAnnual,
       accrued: annualAccruedTotal,
+      extra: balance.annualExtra || 0,
       remaining: Math.max(0, Math.round((annualAccruedTotal - balance.annualUsed - pendingAnnual) * 100) / 100),
     },
     unpaid: { used: balance.unpaidUsed, pending: pendingUnpaid, total: null, remaining: null },

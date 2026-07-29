@@ -4,12 +4,14 @@ export interface LeaveBalanceBucket {
   used: number;
   total: number | null;
   remaining: number | null;
+  extra?: number;
 }
 
 export interface AnnualLeaveBalanceBucket {
   used: number;
   accrued: number;
   remaining: number;
+  extra?: number;
 }
 
 export interface LeaveBalance {
