@@ -120,3 +120,25 @@ export function listLeaveAllocations(params: { employeeId?: string; year?: numbe
     `${API_ENDPOINTS.LEAVES.ALLOCATIONS}${toQueryString({ ...params })}`
   );
 }
+
+export function updateLeaveAllocation(
+  id: string,
+  input: { days?: number; reason?: string }
+) {
+  return apiFetch<ApiSuccess<{ allocation: LeaveAllocationItem }>>(
+    `${API_ENDPOINTS.LEAVES.ALLOCATIONS}/${id}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }
+  );
+}
+
+export function deleteLeaveAllocation(id: string) {
+  return apiFetch<ApiSuccess<{ id: string }>>(
+    `${API_ENDPOINTS.LEAVES.ALLOCATIONS}/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
+}

@@ -59,3 +59,11 @@ export const grantExtraLeaveSchema = z.object({
     year: z.coerce.number().int().min(2000).max(2100).optional(),
   }),
 });
+
+export const updateAllocationSchema = z.object({
+  params: z.object({ id: objectId }),
+  body: z.object({
+    days: z.coerce.number().positive("Days must be greater than 0").optional(),
+    reason: z.string().trim().min(3, "Reason required").optional(),
+  }),
+});

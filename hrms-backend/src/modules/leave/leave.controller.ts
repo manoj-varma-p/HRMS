@@ -67,4 +67,33 @@ async function listAllocations(req: Request, res: Response): Promise<void> {
   sendSuccess(res, { allocations });
 }
 
-export { apply, mine, adminList, balance, cancel, approve, reject, grantExtra, listAllocations };
+async function updateAllocation(req: Request, res: Response): Promise<void> {
+  const allocation = await leaveService.updateLeaveAllocation(
+    req.user!,
+    String(req.params.id),
+    req.body
+  );
+  sendSuccess(res, { allocation }, "Leave allocation updated successfully");
+}
+
+async function deleteAllocation(req: Request, res: Response): Promise<void> {
+  const result = await leaveService.deleteLeaveAllocation(
+    req.user!,
+    String(req.params.id)
+  );
+  sendSuccess(res, result, "Leave allocation deleted successfully");
+}
+
+export {
+  apply,
+  mine,
+  adminList,
+  balance,
+  cancel,
+  approve,
+  reject,
+  grantExtra,
+  listAllocations,
+  updateAllocation,
+  deleteAllocation,
+};

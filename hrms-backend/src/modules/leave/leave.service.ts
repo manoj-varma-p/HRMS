@@ -770,4 +770,71 @@ export async function listLeaveAllocations(query?: { employeeId?: string; year?:
   });
 }
 
+export async function updateLeaveAllocation(
+  actor: Actor,
+  id: string,
+  input: { days?: number; reason?: string }
+) {
+  const allocation = await LeaveAllocationModel.findById(id);
+  if (!allocation) throw new ApiError(404, "Leave allocation not found");
+
+  if (input.days !== undefined && input.days !== allocation.days) {
+    const diff = input.days - allocation.days;
+    const balance = await LeaveBalanceModel.findOne({
+      employee: allocation.employee,
+      year: allocation.year,
+    });
+    if (balance) {
+      if (allocation.leaveType === LEAVE_TYPES.COMP_OFF) {
+        balance.compOffGranted = Math.max(0, (balance.compOffGranted || 0) + diff);
+      } else if (allocation.leaveType === LEAVE_TYPES.SICK) {
+        if (allocation.period === ALLOCATION_PERIOD.H1) balance.sickExtraH1 = Math.max(0, balance.sickExtraH1 + diff);
+        else balance.sickExtraH2 = Math.max(0, balance.sickExtraH2 + diff);
+      } else if (allocation.leaveType === LEAVE_TYPES.CASUAL_PAID) {
+        if (allocation.period === ALLOCATION_PERIOD.H1) balance.casualPaidExtraH1 = Math.max(0, balance.casualPaidExtraH1 + diff);
+        else balance.casualPaidExtraH2 = Math.max(0, balance.casualPaidExtraH2 + diff);
+      } else if (allocation.leaveType === LEAVE_TYPES.ANNUAL) {
+        balance.annualExtra = Math.max(0, balance.annualExtra + diff);
+      }
+      await balance.save();
+    }
+    allocation.days = input.days;
+  }
+
+  if (input.reason !== undefined) {
+    allocation.reason = input.reason;
+  }
+
+  await allocation.save();
+  return allocation;
+}
+
+export async function deleteLeaveAllocation(actor: Actor, id: string) {
+  const allocation = await LeaveAllocationModel.findById(id);
+  if (!allocation) throw new ApiError(404, "Leave allocation not found");
+
+  const balance = await LeaveBalanceModel.findOne({
+    employee: allocation.employee,
+    year: allocation.year,
+  });
+
+  if (balance) {
+    if (allocation.leaveType === LEAVE_TYPES.COMP_OFF) {
+      balance.compOffGranted = Math.max(0, (balance.compOffGranted || 0) - allocation.days);
+    } else if (allocation.leaveType === LEAVE_TYPES.SICK) {
+      if (allocation.period === ALLOCATION_PERIOD.H1) balance.sickExtraH1 = Math.max(0, balance.sickExtraH1 - allocation.days);
+      else balance.sickExtraH2 = Math.max(0, balance.sickExtraH2 - allocation.days);
+    } else if (allocation.leaveType === LEAVE_TYPES.CASUAL_PAID) {
+      if (allocation.period === ALLOCATION_PERIOD.H1) balance.casualPaidExtraH1 = Math.max(0, balance.casualPaidExtraH1 - allocation.days);
+      else balance.casualPaidExtraH2 = Math.max(0, balance.casualPaidExtraH2 - allocation.days);
+    } else if (allocation.leaveType === LEAVE_TYPES.ANNUAL) {
+      balance.annualExtra = Math.max(0, balance.annualExtra - allocation.days);
+    }
+    await balance.save();
+  }
+
+  await allocation.deleteOne();
+  return { id };
+}
+
 export { resolveViewableEmployeeId };

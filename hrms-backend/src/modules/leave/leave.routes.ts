@@ -11,6 +11,7 @@ import {
   leaveIdParamSchema,
   listLeavesSchema,
   reviewLeaveSchema,
+  updateAllocationSchema,
 } from "./leave.validation";
 import * as leaveController from "./leave.controller";
 
@@ -31,6 +32,18 @@ router.patch(
 router.get("/", manage, validate(adminListLeavesSchema), leaveController.adminList);
 router.post("/allocations", manage, validate(grantExtraLeaveSchema), leaveController.grantExtra);
 router.get("/allocations", manage, leaveController.listAllocations);
+router.put(
+  "/allocations/:id",
+  manage,
+  validate(updateAllocationSchema),
+  leaveController.updateAllocation
+);
+router.delete(
+  "/allocations/:id",
+  manage,
+  validate(leaveIdParamSchema),
+  leaveController.deleteAllocation
+);
 router.patch(
   "/:id/approve",
   manage,

@@ -3,6 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { AdministrationPageShell } from "@/features/administration/components/administration-page-shell";
 import { GrantExtraLeaveDialog } from "@/features/leave/components/grant-extra-leave-dialog";
+import { EditCompOffDialog } from "@/features/leave/components/edit-comp-off-dialog";
+import { DeleteCompOffDialog } from "@/features/leave/components/delete-comp-off-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,6 +57,7 @@ export default function AdministrationLeaveManagementPage() {
                     <TableHead>Reason / Remarks</TableHead>
                     <TableHead>Granted By</TableHead>
                     <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -68,11 +71,12 @@ export default function AdministrationLeaveManagementPage() {
                         <TableCell><Skeleton className="h-6 w-48" /></TableCell>
                         <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                         <TableCell><Skeleton className="h-6 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-16" /></TableCell>
                       </TableRow>
                     ))
                   ) : !data || data.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                      <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
                         No Comp Off leaves granted yet. Click "Grant Comp Off Leaves" above to credit days.
                       </TableCell>
                     </TableRow>
@@ -142,6 +146,13 @@ export default function AdministrationLeaveManagementPage() {
 
                           <TableCell className="text-xs text-muted-foreground">
                             {dateStr}
+                          </TableCell>
+
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <EditCompOffDialog item={item} />
+                              <DeleteCompOffDialog item={item} />
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
