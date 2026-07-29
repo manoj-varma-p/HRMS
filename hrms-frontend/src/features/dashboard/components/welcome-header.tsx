@@ -22,6 +22,20 @@ function useClock() {
   return now;
 }
 
+function getGreetingName(fullName: string): string {
+  if (!fullName) return "";
+  const parts = fullName.trim().split(/\s+/);
+  const firstMain = parts.find((p) => p.replace(/\./g, "").length > 2);
+  if (firstMain) {
+    const idx = parts.indexOf(firstMain);
+    if (idx > 0) {
+      return parts.slice(0, idx + 1).join(" ");
+    }
+    return firstMain;
+  }
+  return parts[0];
+}
+
 export function WelcomeHeader() {
   const now = useClock();
   const { data } = useQuery({
@@ -51,7 +65,7 @@ export function WelcomeHeader() {
               <>
                 ,{" "}
                 <span className="bg-linear-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-                  {data.fullName.split(" ")[0]}
+                  {getGreetingName(data.fullName)}
                 </span>
               </>
             ) : (
